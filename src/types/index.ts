@@ -56,6 +56,7 @@ export interface TicketOrder {
   contactPhone?: string;
   contactIdCard?: string;
   status: 'pending' | 'paid' | 'used' | 'cancelled' | 'refund';
+  invoiceStatus?: 'none' | 'pending' | 'issued';
   qrCode?: string;
   createTime: string;
 }
@@ -128,6 +129,9 @@ export interface Review {
   userAvatar?: string;
   createTime: string;
   userName: string;
+  title?: string;
+  email?: string;
+  orderId?: string;
 }
 
 export interface Invoice {

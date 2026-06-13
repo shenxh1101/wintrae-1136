@@ -19,27 +19,26 @@ const InvoicePage: React.FC = () => {
 
   const invoiceList = useAppStore(state => state.invoiceList);
   const addInvoice = useAppStore(state => state.addInvoice);
+  const updateInvoice = useAppStore(state => state.updateInvoice);
   const ticketOrders = useAppStore(state => state.ticketOrders);
+  const updateTicketOrder = useAppStore(state => state.updateTicketOrder);
 
   const tabs = ['申请开票', '开票记录'];
 
   const paidOrders = useMemo(
-    () => ticketOrders.filter(o => o.status === 'paid' || o.status === 'used'),
+    () => ticketOrders.filter(o => (o.status === 'paid' || o.status === 'used') && o.invoiceStatus !== 'issued'),
     [ticketOrders]
   );
 
   const handleTabChange = (index: number) => {
-    console.log('[Invoice] 切换Tab:', tabs[index]);
     setActiveTab(index);
   };
 
   const handleTypeChange = (type: 'personal' | 'company') => {
-    console.log('[Invoice] 切换发票类型:', type);
     setInvoiceType(type);
   };
 
   const handleOrderSelect = (orderId: string) => {
-    console.log('[Invoice] 选择订单:', orderId);
     setSelectedOrders(prev =>
       prev.includes(orderId)
         ? prev.filter(id => id !== orderId)
@@ -86,19 +85,18 @@ const InvoicePage: React.FC = () => {
   };
 
   const handleSubmit = () => {
-    console.log('[Invoice] 提交开票申请');
     if (!validateForm()) return;
 
     setSubmitting(true);
     Taro.showLoading({ title: '提交中...' });
 
     setTimeout(() => {
-      const amount = paidOrders
+      const amount = ticketOrders
         .filter(o => selectedOrders.includes(o.id))
         .reduce((sum, o) => sum + o.totalPrice, 0);
 
       const newInvoice: Invoice = {
-        id: generateRandomId(),
+        id: generateRandomId('INV'),
         type: invoiceType,
         title: title.trim(),
         taxNumber: taxNumber.trim(),
@@ -111,7 +109,10 @@ const InvoicePage: React.FC = () => {
       };
 
       addInvoice(newInvoice);
-      console.log('[Invoice] 提交成功:', newInvoice);
+
+      selectedOrders.forEach(orderId => {
+        updateTicketOrder(orderId, { invoiceStatus: 'pending' });
+      });
 
       Taro.hideLoading();
       Taro.showToast({ title: '申请已提交', icon: 'success' });
@@ -126,20 +127,30 @@ const InvoicePage: React.FC = () => {
     }, 800);
   };
 
-  const handleDownload = (invoiceId: string) => {
-    console.log('[Invoice] 下载发票:', invoiceId);
-    Taro.showToast({ title: '发票已发送到邮箱', icon: 'success' });
+  const handleResendEmail = (invoice: Invoice) => {
+    Taro.showLoading({ title: '发送中...' });
+    setTimeout(() => {
+      Taro.hideLoading();
+      Taro.showToast({ title: `已重新发送至 ${invoice.email}`, icon: 'success' });
+    }, 600);
   };
 
   const handleViewDetail = (invoice: Invoice) => {
-    console.log('[Invoice] 查看发票详情:', invoice.id);
     const orderCount = invoice.orderIds ? invoice.orderIds.length : 1;
+    const relatedOrders = invoice.orderIds
+      ? ticketOrders.filter(o => invoice.orderIds!.includes(o.id))
+      : [];
+    const orderInfo = relatedOrders.length > 0
+      ? relatedOrders.map(o => `${o.ticketName} ¥${o.totalPrice}`).join('\n')
+      : `${orderCount}个订单`;
+
     Taro.showModal({
       title: invoice.title,
       content: `类型：${invoice.type === 'personal' ? '个人' : '企业'}
-金额：¥${invoice.amount}
+${invoice.taxNumber ? `税号：${invoice.taxNumber}\n` : ''}金额：¥${invoice.amount}
 邮箱：${invoice.email}
-关联订单：${orderCount}个
+${invoice.contact ? `联系电话：${invoice.contact}\n` : ''}关联订单：
+${orderInfo}
 申请时间：${invoice.createTime}
 状态：${invoice.status === 'issued' ? '已开具' : '开具中'}`,
       showCancel: false,
@@ -147,9 +158,25 @@ const InvoicePage: React.FC = () => {
     });
   };
 
-  const totalAmount = paidOrders
+  const handleSimulateIssued = (invoiceId: string) => {
+    updateInvoice(invoiceId, { status: 'issued' });
+    const invoice = invoiceList.find(i => i.id === invoiceId);
+    if (invoice && invoice.orderIds) {
+      invoice.orderIds.forEach(orderId => {
+        updateTicketOrder(orderId, { invoiceStatus: 'issued' });
+      });
+    }
+    Taro.showToast({ title: '发票已开具', icon: 'success' });
+  };
+
+  const totalAmount = ticketOrders
     .filter(o => selectedOrders.includes(o.id))
     .reduce((sum, o) => sum + o.totalPrice, 0);
+
+  const getOrderInvoiceStatus = (orderId: string) => {
+    const order = ticketOrders.find(o => o.id === orderId);
+    return order?.invoiceStatus || 'none';
+  };
 
   const renderApplyForm = () => (
     <ScrollView scrollY>
@@ -157,18 +184,14 @@ const InvoicePage: React.FC = () => {
         <Text className={styles.sectionTitle}>发票类型</Text>
         <View className={styles.typeSelector}>
           <View
-            className={classnames(styles.typeOption, {
-              [styles.active]: invoiceType === 'personal'
-            })}
+            className={classnames(styles.typeOption, { [styles.active]: invoiceType === 'personal' })}
             onClick={() => handleTypeChange('personal')}
           >
             <Text className={styles.typeIcon}>👤</Text>
             <Text className={styles.typeName}>个人发票</Text>
           </View>
           <View
-            className={classnames(styles.typeOption, {
-              [styles.active]: invoiceType === 'company'
-            })}
+            className={classnames(styles.typeOption, { [styles.active]: invoiceType === 'company' })}
             onClick={() => handleTypeChange('company')}
           >
             <Text className={styles.typeIcon}>🏢</Text>
@@ -177,9 +200,7 @@ const InvoicePage: React.FC = () => {
         </View>
 
         <View className={styles.formItem}>
-          <Text className={styles.formLabel}>
-            发票抬头 <Text style={{ color: '#ef4444' }}>*</Text>
-          </Text>
+          <Text className={styles.formLabel}>发票抬头 <Text style={{ color: '#ef4444' }}>*</Text></Text>
           <Input
             className={styles.formInputReal}
             placeholder={invoiceType === 'personal' ? '请输入个人姓名' : '请输入公司名称'}
@@ -232,36 +253,48 @@ const InvoicePage: React.FC = () => {
 
       <View className={styles.orderSelector}>
         <Text className={styles.sectionTitle}>
-          选择订单（已选{selectedOrders.length}个，合计¥{totalAmount}）
+          选择可开票订单（已选{selectedOrders.length}个，合计¥{totalAmount}）
         </Text>
-        {paidOrders.length > 0 ? paidOrders.map(order => (
-          <View
-            key={order.id}
-            className={styles.orderItem}
-            onClick={() => handleOrderSelect(order.id)}
-          >
+        {paidOrders.length > 0 ? paidOrders.map(order => {
+          const invStatus = getOrderInvoiceStatus(order.id);
+          return (
             <View
-              className={classnames(styles.orderCheck, {
-                [styles.active]: selectedOrders.includes(order.id)
-              })}
+              key={order.id}
+              className={styles.orderItem}
+              onClick={() => invStatus !== 'issued' && handleOrderSelect(order.id)}
             >
-              {selectedOrders.includes(order.id) && <Text>✓</Text>}
+              <View
+                className={classnames(styles.orderCheck, {
+                  [styles.active]: selectedOrders.includes(order.id),
+                  [styles.disabled]: invStatus === 'issued'
+                })}
+              >
+                {selectedOrders.includes(order.id) && <Text>✓</Text>}
+              </View>
+              <View className={styles.orderInfo}>
+                <Text className={styles.orderName}>{order.spotName} - {order.ticketName}</Text>
+                <Text className={styles.orderMeta}>{order.date} {order.timeSlot} · {order.quantity}张</Text>
+                {invStatus !== 'none' && (
+                  <Text className={classnames(styles.orderInvoiceStatus, {
+                    [styles.invoicePending]: invStatus === 'pending',
+                    [styles.invoiceIssued]: invStatus === 'issued'
+                  })}>
+                    {invStatus === 'pending' ? '开票中' : '已开票'}
+                  </Text>
+                )}
+              </View>
+              <Text className={styles.orderAmount}>¥{order.totalPrice}</Text>
             </View>
-            <View className={styles.orderInfo}>
-              <Text className={styles.orderName}>{order.spotName} - {order.ticketName}</Text>
-              <Text className={styles.orderMeta}>{order.date} {order.timeSlot} · {order.quantity}张</Text>
-            </View>
-            <Text className={styles.orderAmount}>¥{order.totalPrice}</Text>
-          </View>
-        )) : (
+          );
+        }) : (
           <View className={styles.emptyOrders}>
             <Text className={styles.emptyOrdersIcon}>🎫</Text>
             <Text className={styles.emptyOrdersText}>暂无可开票订单</Text>
           </View>
         )}
         <View
-          className={classnames(styles.submitButton, { [styles.submitDisabled]: submitting || paidOrders.length === 0 })}
-          onClick={!submitting && paidOrders.length > 0 ? handleSubmit : undefined}
+          className={classnames(styles.submitButton, { [styles.submitDisabled]: submitting || paidOrders.length === 0 || selectedOrders.length === 0 })}
+          onClick={!submitting && paidOrders.length > 0 && selectedOrders.length > 0 ? handleSubmit : undefined}
         >
           <Text>{submitting ? '提交中...' : '申请开票'}</Text>
         </View>
@@ -317,9 +350,17 @@ const InvoicePage: React.FC = () => {
               {invoice.status === 'issued' && (
                 <View
                   className={classnames(styles.actionBtn, styles.actionBtnPrimary)}
-                  onClick={() => handleDownload(invoice.id)}
+                  onClick={() => handleResendEmail(invoice)}
                 >
-                  <Text>下载发票</Text>
+                  <Text>重发邮件</Text>
+                </View>
+              )}
+              {invoice.status === 'pending' && (
+                <View
+                  className={classnames(styles.actionBtn, styles.actionBtnPrimary)}
+                  onClick={() => handleSimulateIssued(invoice.id)}
+                >
+                  <Text>模拟开票</Text>
                 </View>
               )}
             </View>
@@ -346,9 +387,7 @@ const InvoicePage: React.FC = () => {
         {tabs.map((tab, index) => (
           <View
             key={tab}
-            className={classnames(styles.tabItem, {
-              [styles.active]: activeTab === index
-            })}
+            className={classnames(styles.tabItem, { [styles.active]: activeTab === index })}
             onClick={() => handleTabChange(index)}
           >
             <Text>{tab}</Text>

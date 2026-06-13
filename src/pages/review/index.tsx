@@ -1,21 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image, ScrollView, Input, Textarea } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import Taro, { useRouter } from '@tarojs/taro';
 import classnames from 'classnames';
 import { useAppStore } from '@/store/app-store';
 import { spotsData } from '@/data/spots';
-import { Review } from '@/types';
+import { Review, Spot } from '@/types';
 import { formatTime, generateRandomId } from '@/utils';
 import styles from './index.module.scss';
 
 const ReviewPage: React.FC = () => {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState(0);
   const [rating, setRating] = useState(5);
+  const [reviewTitle, setReviewTitle] = useState('');
   const [content, setContent] = useState('');
   const [contact, setContact] = useState('');
+  const [email, setEmail] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedSpotId, setSelectedSpotId] = useState('');
+  const [selectedOrderId, setSelectedOrderId] = useState('');
+  const [showSpotPicker, setShowSpotPicker] = useState(false);
   const [subRatings, setSubRatings] = useState({
     environment: 5,
     service: 5,
@@ -24,6 +30,7 @@ const ReviewPage: React.FC = () => {
 
   const reviewList = useAppStore(state => state.reviewList);
   const addReview = useAppStore(state => state.addReview);
+  const ticketOrders = useAppStore(state => state.ticketOrders);
 
   const tabs = ['写评价', '我的评价'];
 
@@ -32,25 +39,34 @@ const ReviewPage: React.FC = () => {
     '人太多', '排队久', '值得一去', '推荐亲子'
   ];
 
-  const currentSpot = spotsData[0];
+  const usedOrders = ticketOrders.filter(o => o.status === 'used');
+  const reviewedOrderIds = new Set(reviewList.filter(r => r.orderId).map(r => r.orderId));
+  const unreviewedOrders = usedOrders.filter(o => !reviewedOrderIds.has(o.id));
+
+  useEffect(() => {
+    const spotId = router.params.spotId as string;
+    const orderId = router.params.orderId as string;
+    if (spotId) setSelectedSpotId(spotId);
+    if (orderId) setSelectedOrderId(orderId);
+  }, [router.params]);
+
+  const currentSpot: Spot | undefined = selectedSpotId
+    ? spotsData.find(s => s.id === selectedSpotId)
+    : spotsData[0];
 
   const handleTabChange = (index: number) => {
-    console.log('[Review] 切换Tab:', tabs[index]);
     setActiveTab(index);
   };
 
   const handleRatingClick = (star: number) => {
-    console.log('[Review] 评分:', star);
     setRating(star);
   };
 
   const handleSubRatingClick = (key: keyof typeof subRatings, value: number) => {
-    console.log('[Review] 分项评分:', key, value);
     setSubRatings(prev => ({ ...prev, [key]: value }));
   };
 
   const handleTagToggle = (tag: string) => {
-    console.log('[Review] 切换标签:', tag);
     setSelectedTags(prev =>
       prev.includes(tag)
         ? prev.filter(t => t !== tag)
@@ -58,19 +74,40 @@ const ReviewPage: React.FC = () => {
     );
   };
 
+  const handleSpotSelect = (spotId: string) => {
+    setSelectedSpotId(spotId);
+    setSelectedOrderId('');
+    setShowSpotPicker(false);
+  };
+
+  const handleOrderSelect = (orderId: string) => {
+    const order = ticketOrders.find(o => o.id === orderId);
+    if (order) {
+      setSelectedOrderId(orderId);
+      if (order.spotId) setSelectedSpotId(order.spotId);
+    }
+    setShowSpotPicker(false);
+  };
+
   const handleAddImage = () => {
-    console.log('[Review] 添加图片');
     Taro.showToast({ title: '图片上传功能开发中', icon: 'none' });
   };
 
   const handleAnonymousToggle = () => {
-    console.log('[Review] 切换匿名:', !isAnonymous);
     setIsAnonymous(!isAnonymous);
   };
 
   const validateForm = (): boolean => {
     if (rating === 0) {
       Taro.showToast({ title: '请选择评分', icon: 'none' });
+      return false;
+    }
+    if (!reviewTitle.trim()) {
+      Taro.showToast({ title: '请输入评价标题', icon: 'none' });
+      return false;
+    }
+    if (reviewTitle.trim().length < 2) {
+      Taro.showToast({ title: '标题至少2个字符', icon: 'none' });
       return false;
     }
     if (!content.trim()) {
@@ -90,11 +127,17 @@ const ReviewPage: React.FC = () => {
       Taro.showToast({ title: '请输入正确的手机号', icon: 'none' });
       return false;
     }
+    if (email.trim()) {
+      const emailReg = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailReg.test(email.trim())) {
+        Taro.showToast({ title: '请输入正确的邮箱', icon: 'none' });
+        return false;
+      }
+    }
     return true;
   };
 
   const handleSubmit = () => {
-    console.log('[Review] 提交评价');
     if (!validateForm()) return;
 
     setSubmitting(true);
@@ -103,38 +146,43 @@ const ReviewPage: React.FC = () => {
     setTimeout(() => {
       const newReview: Review = {
         id: generateRandomId(),
-        spotId: currentSpot.id,
-        spotName: currentSpot.name,
+        spotId: currentSpot?.id || '',
+        spotName: currentSpot?.name || '',
         userName: isAnonymous ? '匿名用户' : '游客',
         userAvatar: '',
         rating,
         subRatings,
+        title: reviewTitle.trim(),
         content: content.trim(),
         images: [],
         tags: [...selectedTags],
         contact: contact.trim(),
+        email: email.trim(),
+        orderId: selectedOrderId || undefined,
         isAnonymous,
         createTime: formatTime(new Date())
       };
 
       addReview(newReview);
-      console.log('[Review] 提交成功:', newReview);
 
       Taro.hideLoading();
       Taro.showToast({ title: '评价成功', icon: 'success' });
 
+      setReviewTitle('');
       setContent('');
       setContact('');
+      setEmail('');
       setRating(5);
       setSelectedTags([]);
       setSubRatings({ environment: 5, service: 5, value: 5 });
+      setSelectedOrderId('');
       setActiveTab(1);
       setSubmitting(false);
     }, 800);
   };
 
   const renderStars = (count: number, size: 'small' | 'large' = 'large', interactive: boolean = true) => {
-    const stars = [];
+    const stars: React.ReactNode[] = [];
     for (let i = 1; i <= 5; i++) {
       stars.push(
         <Text
@@ -150,19 +198,69 @@ const ReviewPage: React.FC = () => {
     return stars;
   };
 
+  const renderSpotPicker = () => {
+    if (!showSpotPicker) return null;
+    return (
+      <View className={styles.spotPicker}>
+        <View className={styles.pickerSection}>
+          <Text className={styles.pickerTitle}>按景点选择</Text>
+          <View className={styles.pickerList}>
+            {spotsData.map(spot => (
+              <View
+                key={spot.id}
+                className={classnames(styles.pickerItem, { [styles.active]: selectedSpotId === spot.id && !selectedOrderId })}
+                onClick={() => handleSpotSelect(spot.id)}
+              >
+                <Image className={styles.pickerImage} src={spot.image} mode="aspectFill" />
+                <Text className={styles.pickerName}>{spot.name}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+        {unreviewedOrders.length > 0 && (
+          <View className={styles.pickerSection}>
+            <Text className={styles.pickerTitle}>按订单评价</Text>
+            <View className={styles.pickerList}>
+              {unreviewedOrders.map(order => (
+                <View
+                  key={order.id}
+                  className={classnames(styles.pickerItem, { [styles.active]: selectedOrderId === order.id })}
+                  onClick={() => handleOrderSelect(order.id)}
+                >
+                  <View className={styles.pickerOrderInfo}>
+                    <Text className={styles.pickerOrderName}>{order.ticketName}</Text>
+                    <Text className={styles.pickerOrderMeta}>{order.date} {order.timeSlot}</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+      </View>
+    );
+  };
+
   const renderReviewForm = () => (
     <ScrollView scrollY className={styles.formScroll}>
-      <View className={styles.spotInfo}>
+      <View className={styles.spotInfo} onClick={() => setShowSpotPicker(!showSpotPicker)}>
         <Image
           className={styles.spotImage}
-          src={currentSpot.image}
+          src={currentSpot?.image || 'https://picsum.photos/id/1015/200/200'}
           mode="aspectFill"
         />
         <View className={styles.spotDetail}>
-          <Text className={styles.spotName}>{currentSpot.name}</Text>
-          <Text className={styles.spotDesc}>{currentSpot.duration} · {currentSpot.address}</Text>
+          <Text className={styles.spotName}>{currentSpot?.name || '请选择景点'}</Text>
+          <Text className={styles.spotDesc}>
+            {selectedOrderId
+              ? `订单评价 · ${ticketOrders.find(o => o.id === selectedOrderId)?.ticketName || ''}`
+              : `${currentSpot?.duration || ''} · ${currentSpot?.address || ''}`
+            }
+          </Text>
         </View>
+        <Text className={styles.spotPickerArrow}>▼</Text>
       </View>
+
+      {renderSpotPicker()}
 
       <View className={styles.ratingSection}>
         <Text className={styles.ratingTitle}>总体评分</Text>
@@ -174,9 +272,7 @@ const ReviewPage: React.FC = () => {
         <View className={styles.subRatings}>
           <View className={styles.subRatingItem}>
             <Text className={styles.subRatingLabel}>环境</Text>
-            <View
-              className={styles.subRatingStars}
-            >
+            <View className={styles.subRatingStars}>
               {[1, 2, 3, 4, 5].map(v => (
                 <Text
                   key={v}
@@ -220,6 +316,18 @@ const ReviewPage: React.FC = () => {
       </View>
 
       <View className={styles.contentSection}>
+        <Text className={styles.sectionTitle}>评价标题 <Text style={{ color: '#ef4444' }}>*</Text></Text>
+        <Input
+          className={styles.formInputReal}
+          placeholder="请输入评价标题"
+          placeholderClass={styles.textareaPlaceholder}
+          value={reviewTitle}
+          onInput={(e) => setReviewTitle(e.detail.value)}
+          maxlength={30}
+        />
+      </View>
+
+      <View className={styles.contentSection}>
         <Text className={styles.sectionTitle}>评价内容 <Text style={{ color: '#ef4444' }}>*</Text></Text>
         <Textarea
           className={styles.textareaReal}
@@ -239,9 +347,7 @@ const ReviewPage: React.FC = () => {
           {quickTags.map(tag => (
             <View
               key={tag}
-              className={classnames(styles.tagItem, {
-                [styles.active]: selectedTags.includes(tag)
-              })}
+              className={classnames(styles.tagItem, { [styles.active]: selectedTags.includes(tag) })}
               onClick={() => handleTagToggle(tag)}
             >
               <Text>{tag}</Text>
@@ -265,11 +371,23 @@ const ReviewPage: React.FC = () => {
         <Input
           className={styles.formInputReal}
           type="number"
-          placeholder="请输入手机号，方便我们联系您"
+          placeholder="请输入手机号"
           placeholderClass={styles.textareaPlaceholder}
           value={contact}
           onInput={(e) => setContact(e.detail.value)}
           maxlength={11}
+        />
+      </View>
+
+      <View className={styles.contentSection}>
+        <Text className={styles.sectionTitle}>邮箱</Text>
+        <Input
+          className={styles.formInputReal}
+          placeholder="请输入邮箱（可选）"
+          placeholderClass={styles.textareaPlaceholder}
+          value={email}
+          onInput={(e) => setEmail(e.detail.value)}
+          maxlength={50}
         />
       </View>
 
@@ -292,6 +410,9 @@ const ReviewPage: React.FC = () => {
               </Text>
             </View>
           </View>
+          {review.title && (
+            <Text className={styles.reviewTitle}>{review.title}</Text>
+          )}
           {review.tags && review.tags.length > 0 && (
             <View className={styles.reviewTags}>
               {review.tags.map(tag => (
@@ -326,9 +447,7 @@ const ReviewPage: React.FC = () => {
         {tabs.map((tab, index) => (
           <View
             key={tab}
-            className={classnames(styles.tabItem, {
-              [styles.active]: activeTab === index
-            })}
+            className={classnames(styles.tabItem, { [styles.active]: activeTab === index })}
             onClick={() => handleTabChange(index)}
           >
             <Text>{tab}</Text>
@@ -343,9 +462,7 @@ const ReviewPage: React.FC = () => {
         <View className={styles.bottomBar}>
           <View className={styles.anonymous} onClick={handleAnonymousToggle}>
             <View
-              className={classnames(styles.anonymousCheck, {
-                [styles.active]: isAnonymous
-              })}
+              className={classnames(styles.anonymousCheck, { [styles.active]: isAnonymous })}
             >
               {isAnonymous && <Text>✓</Text>}
             </View>

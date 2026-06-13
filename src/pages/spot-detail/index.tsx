@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import Taro, { useRouter } from '@tarojs/taro';
 import classnames from 'classnames';
 import { useAppStore } from '@/store/app-store';
 import { getSpotById } from '@/data/spots';
-import { reviewList } from '@/data/service';
+import { reviewList as staticReviews } from '@/data/service';
 import { Spot } from '@/types';
 import styles from './index.module.scss';
 
@@ -16,10 +16,10 @@ const SpotDetailPage: React.FC = () => {
   const spotId = router.params.id as string;
   const isFavorite = useAppStore(state => state.isFavorite(spotId));
   const toggleFavorite = useAppStore(state => state.toggleFavorite);
+  const storeReviewList = useAppStore(state => state.reviewList);
 
   useEffect(() => {
     const id = router.params.id as string;
-    console.log('[SpotDetail] 景点ID:', id);
     if (id) {
       const spotData = getSpotById(id);
       if (spotData) {
@@ -28,9 +28,14 @@ const SpotDetailPage: React.FC = () => {
     }
   }, [router.params.id]);
 
+  const spotReviews = useMemo(() => {
+    const storeReviews = storeReviewList.filter(r => r.spotId === router.params.id);
+    const statics = staticReviews.filter(r => r.spotId === router.params.id);
+    return [...storeReviews, ...statics];
+  }, [storeReviewList, router.params.id]);
+
   const handleFavorite = () => {
     if (!spotId) return;
-    console.log('[SpotDetail] 切换收藏状态:', !isFavorite);
     toggleFavorite(spotId);
     Taro.showToast({
       title: isFavorite ? '已取消收藏' : '已加入收藏',
@@ -39,7 +44,6 @@ const SpotDetailPage: React.FC = () => {
   };
 
   const handlePlayAudio = () => {
-    console.log('[SpotDetail] 播放语音讲解');
     setIsPlaying(!isPlaying);
     Taro.showToast({
       title: isPlaying ? '已暂停' : '开始播放',
@@ -48,24 +52,16 @@ const SpotDetailPage: React.FC = () => {
   };
 
   const handleBookTicket = () => {
-    console.log('[SpotDetail] 预约门票');
     Taro.navigateTo({
       url: '/pages/ticket/index'
-    }).catch(err => {
-      console.error('[SpotDetail] 跳转门票页失败:', err);
-    });
+    }).catch(err => console.error('[SpotDetail] 跳转门票页失败:', err));
   };
 
   const handleWriteReview = () => {
-    console.log('[SpotDetail] 写评价');
     Taro.navigateTo({
-      url: '/pages/review/index'
-    }).catch(err => {
-      console.error('[SpotDetail] 跳转评价页失败:', err);
-    });
+      url: `/pages/review/index?spotId=${spotId || ''}`
+    }).catch(err => console.error('[SpotDetail] 跳转评价页失败:', err));
   };
-
-  const spotReviews = reviewList.filter(r => r.spotId === router.params.id);
 
   if (!spot) {
     return (
@@ -179,6 +175,9 @@ const SpotDetailPage: React.FC = () => {
                   </Text>
                 </View>
               </View>
+              {review.title && (
+                <Text className={styles.reviewTitle}>{review.title}</Text>
+              )}
               <Text className={styles.reviewContent}>{review.content}</Text>
               <Text className={styles.reviewTime}>{review.createTime}</Text>
             </View>

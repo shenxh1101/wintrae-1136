@@ -459,3 +459,170 @@
   background-color: $color-bg-hover;
   color: $color-text-primary;
 }
+
+.tourCurrent {
+  animation: tourPulse 1.5s infinite;
+}
+
+@keyframes tourPulse {
+  0% { filter: brightness(1); }
+  50% { filter: brightness(1.3); }
+  100% { filter: brightness(1); }
+}
+
+.tourCompleted {
+  opacity: 0.7;
+}
+
+.tourPopup {
+  position: absolute;
+  bottom: 20rpx;
+  left: $page-padding;
+  right: $page-padding;
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-popup;
+  z-index: 30;
+}
+
+.tourPopupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.tourProgress {
+  flex: 1;
+}
+
+.tourProgressText {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.tourProgressBar {
+  height: 8rpx;
+  background-color: $color-bg-hover;
+  border-radius: 4rpx;
+  overflow: hidden;
+}
+
+.tourProgressFill {
+  height: 100%;
+  border-radius: 4rpx;
+  transition: width 0.3s ease;
+}
+
+.tourPopupClose {
+  font-size: $font-size-sm;
+  color: #f53f3f;
+  font-weight: $font-weight-medium;
+  padding: $spacing-xs $spacing-sm;
+}
+
+.tourSpotInfo {
+  margin-bottom: $spacing-md;
+}
+
+.tourSpotName {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+}
+
+.tourSpotMeta {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.tourActions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.tourActionBtn {
+  flex: 1;
+  height: 72rpx;
+  border-radius: $radius-button;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  transition: all $transition-fast;
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.tourActionPrimary {
+  color: $color-text-white;
+}
+
+.tourActionSecondary {
+  background-color: $color-bg-hover;
+  color: $color-text-primary;
+}
+
+.tourActionFinish {
+  background-color: #00b42a;
+  color: $color-text-white;
+}
+
+.tourStartBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-md;
+  background-color: rgba(37, 99, 235, 0.05);
+  border-radius: $radius-md;
+  margin-bottom: $spacing-md;
+}
+
+.tourStartInfo {
+  flex: 1;
+}
+
+.tourStartRoute {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+}
+
+.tourStartDesc {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.tourStartBtn {
+  padding: $spacing-sm $spacing-xl;
+  border-radius: $radius-button;
+  color: $color-text-white;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  flex-shrink: 0;
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.tourCurrentItem {
+  background-color: rgba(37, 99, 235, 0.1);
+  border: 2rpx solid $color-primary;
+}
+
+.tourCompletedItem {
+  opacity: 0.7;
+}
+
+.indexCompleted {
+  background-color: #00b42a !important;
+}

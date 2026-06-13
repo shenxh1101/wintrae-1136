@@ -1,0 +1,335 @@
+@use '@/styles/variables.scss' as *;
+
+.orderListPage {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+  padding-bottom: calc(#{$spacing-xl} + env(safe-area-inset-bottom));
+}
+
+.tabBar {
+  display: flex;
+  background-color: $color-bg-card;
+  padding: $spacing-sm 0;
+  box-shadow: $shadow-card;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.tabItem {
+  flex: 1;
+  text-align: center;
+  padding: $spacing-sm 0;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
+  position: relative;
+  transition: all $transition-fast;
+
+  &.active {
+    color: $color-primary;
+    font-weight: $font-weight-semibold;
+  }
+
+  &.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 48rpx;
+    height: 6rpx;
+    background: $color-primary-gradient;
+    border-radius: 3rpx;
+  }
+}
+
+.content {
+  padding: $spacing-md;
+}
+
+.orderCard {
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+}
+
+.orderHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+  padding-bottom: $spacing-md;
+  border-bottom: 1rpx solid $color-divider;
+}
+
+.orderNo {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  font-family: monospace;
+}
+
+.orderStatus {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  padding: 4rpx 16rpx;
+  border-radius: $radius-button;
+
+  &.statusPaid {
+    color: #2563eb;
+    background-color: rgba(37, 99, 235, 0.1);
+  }
+
+  &.statusUsed {
+    color: #00b42a;
+    background-color: rgba(0, 180, 42, 0.1);
+  }
+
+  &.statusCancelled {
+    color: #86909c;
+    background-color: rgba(134, 144, 156, 0.1);
+  }
+
+  &.statusRefund {
+    color: #f53f3f;
+    background-color: rgba(245, 63, 63, 0.1);
+  }
+
+  &.statusPending {
+    color: #ff7d00;
+    background-color: rgba(255, 125, 0, 0.1);
+  }
+}
+
+.orderBody {
+  margin-bottom: $spacing-md;
+}
+
+.orderInfoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-xs 0;
+}
+
+.orderInfoLabel {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.orderInfoValue {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}
+
+.orderPrice {
+  color: #ef4444;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+}
+
+.invoiceBadge {
+  font-size: $font-size-xs;
+  padding: 2rpx 12rpx;
+  border-radius: $radius-button;
+  margin-left: $spacing-xs;
+
+  &.invoiceNone {
+    color: $color-text-tertiary;
+    background-color: $color-bg-hover;
+  }
+
+  &.invoicePending {
+    color: #ff7d00;
+    background-color: rgba(255, 125, 0, 0.1);
+  }
+
+  &.invoiceIssued {
+    color: #00b42a;
+    background-color: rgba(0, 180, 42, 0.1);
+  }
+}
+
+.orderActions {
+  display: flex;
+  gap: $spacing-sm;
+  justify-content: flex-end;
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $color-divider;
+}
+
+.actionBtn {
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-button;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  transition: all $transition-fast;
+
+  &:active {
+    opacity: 0.8;
+    transform: scale(0.97);
+  }
+
+  &.actionPrimary {
+    background: $color-primary-gradient;
+    color: $color-text-white;
+  }
+
+  &.actionSecondary {
+    background-color: $color-bg-hover;
+    color: $color-text-primary;
+  }
+
+  &.actionDanger {
+    background-color: rgba(245, 63, 63, 0.1);
+    color: #f53f3f;
+  }
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 160rpx 0;
+}
+
+.emptyIcon {
+  font-size: 120rpx;
+  margin-bottom: $spacing-md;
+  opacity: 0.5;
+}
+
+.emptyText {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+  margin-bottom: $spacing-lg;
+}
+
+.emptyAction {
+  padding: $spacing-sm $spacing-xl;
+  border-radius: $radius-button;
+  background-color: rgba(37, 99, 235, 0.1);
+  color: $color-primary;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.detailPopup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.detailContent {
+  width: 100%;
+  background-color: $color-bg-card;
+  border-radius: $radius-lg $radius-lg 0 0;
+  padding: $spacing-xl $page-padding;
+  padding-bottom: calc(#{$spacing-xl} + env(safe-area-inset-bottom));
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.detailHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-lg;
+}
+
+.detailTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.detailClose {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background-color: $color-bg-hover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+}
+
+.detailInfo {
+  margin-bottom: $spacing-lg;
+}
+
+.detailInfoItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-sm 0;
+  border-bottom: 1rpx solid $color-divider;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.detailInfoLabel {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.detailInfoValue {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}
+
+.detailActions {
+  display: flex;
+  gap: $spacing-md;
+  margin-top: $spacing-lg;
+}
+
+.detailActionBtn {
+  flex: 1;
+  height: 88rpx;
+  border-radius: $radius-button;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  transition: all $transition-fast;
+
+  &:active {
+    opacity: 0.9;
+  }
+
+  &.actionPrimary {
+    background: $color-primary-gradient;
+    color: $color-text-white;
+  }
+
+  &.actionSecondary {
+    background-color: $color-bg-hover;
+    color: $color-text-primary;
+  }
+
+  &.actionDanger {
+    background-color: rgba(245, 63, 63, 0.1);
+    color: #f53f3f;
+  }
+}

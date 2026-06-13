@@ -271,6 +271,13 @@
   line-height: 1.6;
 }
 
+.reviewTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
 .reviewTime {
   font-size: $font-size-xs;
   color: $color-text-tertiary;

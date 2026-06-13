@@ -40,7 +40,8 @@ export const getOrderStatusText = (status: string): string => {
     pending: '待支付',
     paid: '待使用',
     used: '已使用',
-    cancelled: '已取消'
+    cancelled: '已取消',
+    refund: '退款/售后'
   };
   return map[status] || status;
 };
@@ -50,7 +51,8 @@ export const getOrderStatusColor = (status: string): string => {
     pending: '#FF7D00',
     paid: '#2563EB',
     used: '#00B42A',
-    cancelled: '#86909C'
+    cancelled: '#86909C',
+    refund: '#F53F3F'
   };
   return map[status] || '#86909C';
 };

@@ -219,6 +219,12 @@
     border-color: $color-primary;
     color: $color-text-white;
   }
+
+  &.disabled {
+    background-color: $color-bg-hover;
+    border-color: $color-border;
+    opacity: 0.5;
+  }
 }
 
 .orderInfo {
@@ -371,4 +377,22 @@
 .emptyText {
   font-size: $font-size-md;
   color: $color-text-tertiary;
+}
+
+.orderInvoiceStatus {
+  display: inline-block;
+  font-size: $font-size-xs;
+  padding: 2rpx 12rpx;
+  border-radius: $radius-button;
+  margin-top: 4rpx;
+
+  &.invoicePending {
+    color: #ff7d00;
+    background-color: rgba(255, 125, 0, 0.1);
+  }
+
+  &.invoiceIssued {
+    color: #00b42a;
+    background-color: rgba(0, 180, 42, 0.1);
+  }
 }

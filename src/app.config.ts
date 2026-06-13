@@ -11,7 +11,8 @@ export default defineAppConfig({
     'pages/qr-code/index',
     'pages/service-help/index',
     'pages/review/index',
-    'pages/invoice/index'
+    'pages/invoice/index',
+    'pages/order-list/index'
   ],
   window: {
     backgroundTextStyle: 'light',

@@ -40,6 +40,89 @@
   color: $color-text-tertiary;
 }
 
+.spotPickerArrow {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  flex-shrink: 0;
+  margin-left: $spacing-sm;
+}
+
+.spotPicker {
+  background-color: $color-bg-card;
+  margin: 0;
+  padding: $spacing-lg;
+  border-top: 1rpx solid $color-divider;
+  box-shadow: $shadow-card;
+}
+
+.pickerSection {
+  margin-bottom: $spacing-lg;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.pickerTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+}
+
+.pickerList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.pickerItem {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-md;
+  background-color: $color-bg-hover;
+  transition: all $transition-fast;
+
+  &.active {
+    background-color: rgba(37, 99, 235, 0.1);
+    border: 2rpx solid $color-primary;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.pickerImage {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: $radius-sm;
+  flex-shrink: 0;
+}
+
+.pickerName {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+}
+
+.pickerOrderInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.pickerOrderName {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}
+
+.pickerOrderMeta {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
 .ratingSection {
   background-color: $color-bg-card;
   margin: $spacing-md;
@@ -424,6 +507,13 @@
   font-size: $font-size-sm;
   color: $color-text-secondary;
   line-height: 1.6;
+}
+
+.reviewTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
 }
 
 .reviewTime {

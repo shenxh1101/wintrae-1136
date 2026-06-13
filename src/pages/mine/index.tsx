@@ -35,7 +35,11 @@ const MinePage: React.FC = () => {
 
   const handleOrderClick = (type: string) => {
     console.log('[Mine] 查看订单:', type);
-    Taro.showToast({ title: `查看${type}订单`, icon: 'none' });
+    Taro.navigateTo({
+      url: `/pages/order-list/index?status=${type}`
+    }).catch(err => {
+      console.error('[Mine] 跳转订单列表失败:', err);
+    });
   };
 
   const handleMenuClick = (item: typeof menuItems[0]) => {
@@ -101,7 +105,7 @@ const MinePage: React.FC = () => {
       <View className={styles.orderSection}>
         <View className={styles.orderHeader}>
           <Text className={styles.orderTitle}>我的订单</Text>
-          <Text className={styles.orderMore}>全部订单 ›</Text>
+          <Text className={styles.orderMore} onClick={() => handleOrderClick('all')}>全部订单 ›</Text>
         </View>
         <View className={styles.orderIcons}>
           {orderTypes.map(item => (

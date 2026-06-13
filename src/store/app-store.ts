@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import Taro from '@tarojs/taro';
 import { TicketOrder, ServiceHelpItem, Review, Invoice } from '@/types';
 import { spotsData } from '@/data/spots';
 
@@ -11,6 +10,7 @@ interface AppState {
   reviewList: Review[];
   invoiceList: Invoice[];
   currentOrder: TicketOrder | null;
+  activeRouteTour: { routeId: string; currentSpotIndex: number; startTime: string } | null;
 
   toggleFavorite: (spotId: string) => void;
   isFavorite: (spotId: string) => boolean;
@@ -18,12 +18,18 @@ interface AppState {
 
   addTicketOrder: (order: TicketOrder) => void;
   setCurrentOrder: (order: TicketOrder | null) => void;
+  updateTicketOrder: (orderId: string, updates: Partial<TicketOrder>) => void;
+  cancelTicketOrder: (orderId: string) => void;
 
   addServiceHelp: (item: ServiceHelpItem) => void;
 
   addReview: (review: Review) => void;
 
   addInvoice: (invoice: Invoice) => void;
+  updateInvoice: (invoiceId: string, updates: Partial<Invoice>) => void;
+
+  setActiveRouteTour: (tour: { routeId: string; currentSpotIndex: number; startTime: string } | null) => void;
+  advanceRouteTour: () => void;
 }
 
 const initialFavorites = spotsData.filter(s => s.isFavorite).map(s => s.id);
@@ -37,6 +43,7 @@ export const useAppStore = create<AppState>()(
       reviewList: [],
       invoiceList: [],
       currentOrder: null,
+      activeRouteTour: null,
 
       toggleFavorite: (spotId: string) => {
         set(state => {
@@ -88,6 +95,41 @@ export const useAppStore = create<AppState>()(
         set(state => ({
           invoiceList: [invoice, ...state.invoiceList]
         }));
+      },
+
+      updateTicketOrder: (orderId: string, updates: Partial<TicketOrder>) => {
+        set(state => ({
+          ticketOrders: state.ticketOrders.map(order =>
+            order.id === orderId ? { ...order, ...updates } : order
+          )
+        }));
+      },
+
+      updateInvoice: (invoiceId: string, updates: Partial<Invoice>) => {
+        set(state => ({
+          invoiceList: state.invoiceList.map(invoice =>
+            invoice.id === invoiceId ? { ...invoice, ...updates } : invoice
+          )
+        }));
+      },
+
+      cancelTicketOrder: (orderId: string) => {
+        set(state => ({
+          ticketOrders: state.ticketOrders.map(order =>
+            order.id === orderId ? { ...order, status: 'cancelled' } : order
+          )
+        }));
+      },
+
+      setActiveRouteTour: (tour: { routeId: string; currentSpotIndex: number; startTime: string } | null) => {
+        set({ activeRouteTour: tour });
+      },
+
+      advanceRouteTour: () => {
+        const current = get().activeRouteTour;
+        if (current) {
+          set({ activeRouteTour: { ...current, currentSpotIndex: current.currentSpotIndex + 1 } });
+        }
       }
     }),
     {
@@ -97,7 +139,8 @@ export const useAppStore = create<AppState>()(
         ticketOrders: state.ticketOrders,
         serviceHelpList: state.serviceHelpList,
         reviewList: state.reviewList,
-        invoiceList: state.invoiceList
+        invoiceList: state.invoiceList,
+        activeRouteTour: state.activeRouteTour
       })
     }
   )
