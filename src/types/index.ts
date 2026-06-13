@@ -59,6 +59,21 @@ export interface TicketOrder {
   invoiceStatus?: 'none' | 'pending' | 'issued';
   qrCode?: string;
   createTime: string;
+  hasReview?: boolean;
+  refundId?: string;
+}
+
+export interface RefundRecord {
+  id: string;
+  orderId: string;
+  orderNo?: string;
+  reason: string;
+  method: 'original' | 'balance';
+  amount: number;
+  status: 'pending' | 'processing' | 'completed' | 'rejected';
+  createTime: string;
+  processTime?: string;
+  remark?: string;
 }
 
 export interface ItineraryItem {

@@ -242,7 +242,20 @@
   padding: $spacing-xl $page-padding;
   padding-bottom: calc(#{$spacing-xl} + env(safe-area-inset-bottom));
   max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.detailScroll {
+  flex: 1;
   overflow-y: auto;
+  margin-bottom: $spacing-md;
+}
+
+.detailSection {
+  margin-top: $spacing-lg;
+  padding-top: $spacing-lg;
+  border-top: 1rpx solid $color-divider;
 }
 
 .detailHeader {
@@ -297,12 +310,6 @@
   font-weight: $font-weight-medium;
 }
 
-.detailActions {
-  display: flex;
-  gap: $spacing-md;
-  margin-top: $spacing-lg;
-}
-
 .detailActionBtn {
   flex: 1;
   height: 88rpx;
@@ -332,4 +339,303 @@
     background-color: rgba(245, 63, 63, 0.1);
     color: #f53f3f;
   }
+}
+
+.refundBadge {
+  font-size: $font-size-xs;
+  padding: 2rpx 12rpx;
+  border-radius: $radius-button;
+
+  &.refundPending {
+    color: #ff7d00;
+    background-color: rgba(255, 125, 0, 0.1);
+  }
+
+  &.refundProcessing {
+    color: #2563eb;
+    background-color: rgba(37, 99, 235, 0.1);
+  }
+
+  &.refundCompleted {
+    color: #00b42a;
+    background-color: rgba(0, 180, 42, 0.1);
+  }
+
+  &.refundRejected {
+    color: #f53f3f;
+    background-color: rgba(245, 63, 63, 0.1);
+  }
+}
+
+.refundPopup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 250;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.refundContent {
+  width: 100%;
+  background-color: $color-bg-card;
+  border-radius: $radius-lg $radius-lg 0 0;
+  padding: $spacing-xl $page-padding;
+  padding-bottom: calc(#{$spacing-xl} + env(safe-area-inset-bottom));
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.refundHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-lg;
+}
+
+.refundTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.refundClose {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background-color: $color-bg-hover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+}
+
+.refundBody {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: $spacing-md;
+}
+
+.refundInfoBox {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(37, 99, 235, 0.05));
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+  text-align: center;
+}
+
+.refundInfoLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  display: block;
+  margin-bottom: $spacing-xs;
+}
+
+.refundAmount {
+  font-size: 56rpx;
+  font-weight: $font-weight-bold;
+  color: #ef4444;
+}
+
+.refundSection {
+  margin-bottom: $spacing-xl;
+}
+
+.refundSectionTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+  display: block;
+}
+
+.refundReasonItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-md;
+  background-color: $color-bg-hover;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-sm;
+  transition: all $transition-fast;
+
+  &.active {
+    background-color: rgba(37, 99, 235, 0.1);
+    color: $color-primary;
+  }
+
+  Text:first-child {
+    font-size: $font-size-sm;
+  }
+}
+
+.refundRadio {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+
+  .active & {
+    color: $color-primary;
+  }
+}
+
+.refundReasonInput {
+  width: 100%;
+  padding: $spacing-md;
+  background-color: $color-bg-hover;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  margin-top: $spacing-sm;
+}
+
+.refundMethodItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-md;
+  background-color: $color-bg-hover;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-sm;
+  transition: all $transition-fast;
+
+  &.active {
+    background-color: rgba(37, 99, 235, 0.1);
+  }
+}
+
+.refundMethodName {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  display: block;
+  margin-bottom: 4rpx;
+
+  .active & {
+    color: $color-primary;
+  }
+}
+
+.refundMethodDesc {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.refundFooter {
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $color-divider;
+}
+
+.refundSubmitBtn {
+  width: 100%;
+  height: 88rpx;
+  border-radius: $radius-button;
+  background: $color-primary-gradient;
+  color: $color-text-white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  transition: all $transition-fast;
+
+  &.disabled {
+    background: $color-bg-disabled;
+    color: $color-text-disabled;
+  }
+
+  &:active:not(.disabled) {
+    opacity: 0.9;
+  }
+}
+
+.refundProgress {
+  padding: $spacing-md;
+}
+
+.refundProgressTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-lg;
+  display: block;
+}
+
+.refundStep {
+  display: flex;
+  align-items: flex-start;
+  position: relative;
+  padding-bottom: $spacing-lg;
+
+  &:last-child {
+    padding-bottom: 0;
+  }
+}
+
+.refundStepDot {
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: 50%;
+  background-color: $color-bg-disabled;
+  flex-shrink: 0;
+  margin-top: 6rpx;
+  position: relative;
+  z-index: 2;
+
+  &.done {
+    background-color: $color-primary;
+  }
+}
+
+.refundStepLine {
+  position: absolute;
+  left: 11rpx;
+  top: 30rpx;
+  bottom: 0;
+  width: 2rpx;
+  z-index: 1;
+}
+
+.refundStepLineInner {
+  width: 100%;
+  height: 100%;
+  background-color: $color-divider;
+
+  &.done {
+    background-color: $color-primary;
+  }
+}
+
+.refundStepContent {
+  flex: 1;
+  margin-left: $spacing-md;
+}
+
+.refundStepLabel {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  font-weight: $font-weight-medium;
+  display: block;
+  margin-bottom: 4rpx;
+
+  &.done {
+    color: $color-text-primary;
+  }
+}
+
+.refundStepTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+.refundStepRemark {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  display: block;
 }

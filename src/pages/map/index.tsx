@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text } from '@tarojs/components';
-import Taro from '@tarojs/taro';
+import Taro, { useDidShow } from '@tarojs/taro';
 import classnames from 'classnames';
 import { useAppStore } from '@/store/app-store';
 import { spotsData } from '@/data/spots';
@@ -10,11 +10,21 @@ import { getQueueLevelText, getQueueLevelColor, formatTime } from '@/utils';
 import { Spot } from '@/types';
 import styles from './index.module.scss';
 
+const formatDuration = (ms: number): string => {
+  const hours = Math.floor(ms / (1000 * 60 * 60));
+  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+  if (hours > 0) {
+    return `${hours}小时${minutes}分钟`;
+  }
+  return `${minutes}分钟`;
+};
+
 const MapPage: React.FC = () => {
   const [activeRoute, setActiveRoute] = useState('default');
   const [activeFacility, setActiveFacility] = useState('all');
   const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null);
   const [isPlayingAudio, setIsPlayingAudio] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(Date.now());
 
   const activeRouteTour = useAppStore(state => state.activeRouteTour);
   const setActiveRouteTour = useAppStore(state => state.setActiveRouteTour);
@@ -27,6 +37,53 @@ const MapPage: React.FC = () => {
       setActiveRoute(activeRouteTour.routeId);
     }
   }, []);
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setInterval>;
+    if (isTourActive) {
+      timer = setInterval(() => {
+        setCurrentTime(Date.now());
+      }, 60000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [isTourActive]);
+
+  useDidShow(() => {
+    if (activeRouteTour) {
+      const tourRoute = routeSpotsMap.find(r => r.routeId === activeRouteTour.routeId);
+      if (tourRoute) {
+        if (activeRoute !== activeRouteTour.routeId) {
+          setActiveRoute(activeRouteTour.routeId);
+        }
+        const spots = tourRoute.spotIds
+          .map(id => spotsData.find(s => s.id === id))
+          .filter((s): s is Spot => !!s);
+        const currentSpot = spots[activeRouteTour.currentSpotIndex] || null;
+        if (currentSpot && selectedSpot?.id !== currentSpot.id) {
+          setSelectedSpot(currentSpot);
+        }
+      }
+    }
+  });
+
+  const tourStats = useMemo(() => {
+    if (!activeRouteTour) return null;
+    const tourRoute = routeSpotsMap.find(r => r.routeId === activeRouteTour.routeId);
+    const totalSpots = tourRoute?.spotIds.length || 0;
+    const startTime = new Date(activeRouteTour.startTime).getTime();
+    const elapsedMs = currentTime - startTime;
+    const completedCount = activeRouteTour.currentSpotIndex;
+    const remainingCount = totalSpots - activeRouteTour.currentSpotIndex - 1;
+    return {
+      elapsed: formatDuration(elapsedMs),
+      elapsedMs,
+      totalSpots,
+      completedCount,
+      remainingCount: Math.max(0, remainingCount)
+    };
+  }, [activeRouteTour, currentTime]);
 
   const facilityTypes = [
     { id: 'all', name: '全部', icon: '📍' },
@@ -190,8 +247,8 @@ const MapPage: React.FC = () => {
           <View className={styles.routeHeaderLeft}>
             <Text className={styles.routeHeaderName}>{currentRoute.name}</Text>
             <Text className={styles.routeHeaderDesc}>
-              {isTourActive
-                ? `游览中 · 第${(activeRouteTour?.currentSpotIndex || 0) + 1}/${routeSpots.length}个景点`
+              {isTourActive && tourStats
+                ? `游览中 · 已走${tourStats.elapsed} · 剩${tourStats.remainingCount}个景点`
                 : currentRoute.description
               }
             </Text>
@@ -312,6 +369,7 @@ const MapPage: React.FC = () => {
               <View className={styles.tourProgress}>
                 <Text className={styles.tourProgressText}>
                   第{(activeRouteTour?.currentSpotIndex || 0) + 1}/{routeSpots.length}站
+                  {tourStats && ` · 已走${tourStats.elapsed}`}
                 </Text>
                 <View className={styles.tourProgressBar}>
                   <View
@@ -327,7 +385,10 @@ const MapPage: React.FC = () => {
             </View>
             <View className={styles.tourSpotInfo}>
               <Text className={styles.tourSpotName}>{tourCurrentSpot.name}</Text>
-              <Text className={styles.tourSpotMeta}>⭐ {tourCurrentSpot.rating} · {tourCurrentSpot.duration}</Text>
+              <Text className={styles.tourSpotMeta}>
+                ⭐ {tourCurrentSpot.rating} · {tourCurrentSpot.duration}
+                {tourStats && tourStats.remainingCount > 0 && ` · 剩余${tourStats.remainingCount}个景点`}
+              </Text>
             </View>
             <View className={styles.tourActions}>
               <View
@@ -417,7 +478,7 @@ const MapPage: React.FC = () => {
           <View className={styles.routeSpotsList}>
             <Text className={styles.routeSpotsTitle}>
               路线景点（{routeSpots.length}个）
-              {isTourActive && ` · 已到第${(activeRouteTour?.currentSpotIndex || 0) + 1}个`}
+              {isTourActive && tourStats && ` · 已走${tourStats.elapsed} · 剩${tourStats.remainingCount}个`}
             </Text>
             <View className={styles.routeSpotsScroll}>
               {routeSpots.map((spot, index) => {

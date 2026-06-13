@@ -30,6 +30,7 @@ const ReviewPage: React.FC = () => {
 
   const reviewList = useAppStore(state => state.reviewList);
   const addReview = useAppStore(state => state.addReview);
+  const markOrderReviewed = useAppStore(state => state.markOrderReviewed);
   const ticketOrders = useAppStore(state => state.ticketOrders);
 
   const tabs = ['写评价', '我的评价'];
@@ -164,6 +165,10 @@ const ReviewPage: React.FC = () => {
       };
 
       addReview(newReview);
+
+      if (selectedOrderId) {
+        markOrderReviewed(selectedOrderId);
+      }
 
       Taro.hideLoading();
       Taro.showToast({ title: '评价成功', icon: 'success' });

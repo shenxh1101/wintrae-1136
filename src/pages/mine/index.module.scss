@@ -144,6 +144,13 @@
   padding: 0 8rpx;
 }
 
+.pendingReviewBadge {
+  top: -8rpx;
+  right: -8rpx;
+  background-color: #f59e0b;
+  z-index: 2;
+}
+
 .orderIconLabel {
   font-size: $font-size-xs;
   color: $color-text-secondary;
@@ -249,4 +256,78 @@
 .serviceName {
   font-size: $font-size-xs;
   color: $color-text-secondary;
+}
+
+.reviewReminder {
+  display: flex;
+  align-items: center;
+  margin: -20rpx $page-padding $spacing-md;
+  padding: $spacing-md $spacing-lg;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  position: relative;
+  z-index: 15;
+}
+
+.reviewReminderIcon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background-color: rgba(245, 158, 11, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  margin-right: $spacing-md;
+}
+
+.reviewReminderContent {
+  flex: 1;
+}
+
+.reviewReminderTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: #92400e;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+.reviewReminderDesc {
+  font-size: $font-size-xs;
+  color: #b45309;
+}
+
+.reviewReminderArrow {
+  font-size: $font-size-lg;
+  color: #d97706;
+}
+
+.serviceIcon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: $radius-lg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  margin-bottom: $spacing-xs;
+  position: relative;
+}
+
+.serviceBadge {
+  position: absolute;
+  top: -8rpx;
+  right: -8rpx;
+  min-width: 32rpx;
+  height: 32rpx;
+  border-radius: 16rpx;
+  background-color: #f59e0b;
+  color: $color-text-white;
+  font-size: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8rpx;
 }

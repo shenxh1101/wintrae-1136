@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text } from '@tarojs/components';
 import Taro from '@tarojs/taro';
+import classnames from 'classnames';
 import { useAppStore } from '@/store/app-store';
 import styles from './index.module.scss';
 
@@ -8,13 +9,18 @@ const MinePage: React.FC = () => {
   const favoriteSpotIds = useAppStore(state => state.favoriteSpotIds);
   const reviewList = useAppStore(state => state.reviewList);
   const ticketOrders = useAppStore(state => state.ticketOrders);
+  const invoiceList = useAppStore(state => state.invoiceList);
+
+  const pendingReviewCount = useMemo(() => {
+    return ticketOrders.filter(o => o.status === 'used' && !o.hasReview).length;
+  }, [ticketOrders]);
 
   const orderTypes = useMemo(() => {
     return [
       { id: 'pending', name: '待付款', icon: '💰', count: ticketOrders.filter(o => o.status === 'pending').length },
       { id: 'paid', name: '待使用', icon: '🎫', count: ticketOrders.filter(o => o.status === 'paid').length },
       { id: 'used', name: '已使用', icon: '✅', count: ticketOrders.filter(o => o.status === 'used').length },
-      { id: 'refund', name: '退款/售后', icon: '↩️', count: ticketOrders.filter(o => o.status === 'refund').length }
+      { id: 'refund', name: '退款/售后', icon: '↩️', count: ticketOrders.filter(o => o.status === 'refund' || o.status === 'cancelled').length }
     ];
   }, [ticketOrders]);
 
@@ -22,13 +28,13 @@ const MinePage: React.FC = () => {
     { id: 'favorites', name: '我的收藏', icon: '❤️', path: '/pages/itinerary/index?tab=1', count: favoriteSpotIds.length },
     { id: 'footprint', name: '浏览足迹', icon: '👣', path: '' },
     { id: 'coupon', name: '优惠券', icon: '🎟️', path: '' },
-    { id: 'invoice', name: '电子发票', icon: '🧾', path: '/pages/invoice/index' },
+    { id: 'invoice', name: '电子发票', icon: '🧾', path: '/pages/invoice/index', count: invoiceList.length },
     { id: 'settings', name: '设置', icon: '⚙️', path: '' }
   ];
 
   const serviceItems = [
     { id: 'help', name: '服务求助', icon: '💁', color: '#f87171', path: '/pages/service-help/index' },
-    { id: 'review', name: '评价打分', icon: '⭐', color: '#fbbf24', path: '/pages/review/index' },
+    { id: 'review', name: '评价打分', icon: '⭐', color: '#fbbf24', path: '/pages/review/index', badge: pendingReviewCount },
     { id: 'qa', name: '常见问题', icon: '❓', color: '#60a5fa', path: '' },
     { id: 'feedback', name: '意见反馈', icon: '📝', color: '#34d399', path: '' }
   ];
@@ -73,6 +79,12 @@ const MinePage: React.FC = () => {
     Taro.showToast({ title: '编辑资料功能开发中', icon: 'none' });
   };
 
+  const handleGoReviewReminder = () => {
+    Taro.navigateTo({ url: '/pages/order-list/index?status=used' }).catch(err => {
+      console.error('[Mine] 跳转失败:', err);
+    });
+  };
+
   return (
     <View className={styles.minePage}>
       <View className={styles.header}>
@@ -92,7 +104,7 @@ const MinePage: React.FC = () => {
             <Text className={styles.statLabel}>收藏景点</Text>
           </View>
           <View className={styles.statItem}>
-            <Text className={styles.statValue}>{ticketOrders.length}</Text>
+            <Text className={styles.statValue}>{ticketOrders.filter(o => o.status === 'used').length}</Text>
             <Text className={styles.statLabel}>游览记录</Text>
           </View>
           <View className={styles.statItem}>
@@ -101,6 +113,19 @@ const MinePage: React.FC = () => {
           </View>
         </View>
       </View>
+
+      {pendingReviewCount > 0 && (
+        <View className={styles.reviewReminder} onClick={handleGoReviewReminder}>
+          <View className={styles.reviewReminderIcon}>
+            <Text>✍️</Text>
+          </View>
+          <View className={styles.reviewReminderContent}>
+            <Text className={styles.reviewReminderTitle}>你有{pendingReviewCount}个订单待评价</Text>
+            <Text className={styles.reviewReminderDesc}>评价后可获得积分奖励</Text>
+          </View>
+          <Text className={styles.reviewReminderArrow}>›</Text>
+        </View>
+      )}
 
       <View className={styles.orderSection}>
         <View className={styles.orderHeader}>
@@ -119,6 +144,11 @@ const MinePage: React.FC = () => {
                 {item.count > 0 && (
                   <View className={styles.orderBadge}>
                     <Text>{item.count > 99 ? '99+' : item.count}</Text>
+                  </View>
+                )}
+                {item.id === 'used' && pendingReviewCount > 0 && (
+                  <View className={classnames(styles.orderBadge, styles.pendingReviewBadge)}>
+                    <Text>{pendingReviewCount > 99 ? '99+' : pendingReviewCount}</Text>
                   </View>
                 )}
               </View>
@@ -161,6 +191,11 @@ const MinePage: React.FC = () => {
                 style={{ backgroundColor: item.color + '20' }}
               >
                 <Text>{item.icon}</Text>
+                {item.badge && item.badge > 0 && (
+                  <View className={styles.serviceBadge}>
+                    <Text>{item.badge > 99 ? '99+' : item.badge}</Text>
+                  </View>
+                )}
               </View>
               <Text className={styles.serviceName}>{item.name}</Text>
             </View>
