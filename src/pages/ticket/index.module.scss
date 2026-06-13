@@ -1,0 +1,292 @@
+@use '@/styles/variables.scss' as *;
+
+.ticketPage {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+  padding-bottom: 160rpx;
+}
+
+.dateSelector {
+  display: flex;
+  background-color: $color-bg-card;
+  padding: $spacing-md $page-padding;
+  overflow-x: auto;
+  gap: $spacing-sm;
+  box-shadow: $shadow-card;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.dateItem {
+  flex-shrink: 0;
+  width: 120rpx;
+  padding: $spacing-sm;
+  border-radius: $radius-md;
+  text-align: center;
+  background-color: $color-bg-hover;
+  transition: all $transition-fast;
+
+  &.active {
+    background: $color-primary-gradient;
+
+    .dateDay, .dateWeekday {
+      color: $color-text-white;
+    }
+  }
+}
+
+.dateDay {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.dateWeekday {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+}
+
+.content {
+  padding: $spacing-md $page-padding;
+}
+
+.ticketCard {
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-md;
+  box-shadow: $shadow-card;
+  transition: all $transition-fast;
+
+  &:active {
+    transform: scale(0.99);
+  }
+}
+
+.ticketHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: $spacing-sm;
+}
+
+.ticketName {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.ticketPrice {
+  text-align: right;
+}
+
+.priceCurrent {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-price;
+}
+
+.priceCurrent small {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-normal;
+}
+
+.priceOriginal {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  text-decoration: line-through;
+  margin-top: 4rpx;
+}
+
+.ticketDesc {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-md;
+  line-height: 1.5;
+}
+
+.ticketInfo {
+  display: flex;
+  gap: $spacing-lg;
+  margin-bottom: $spacing-md;
+}
+
+.ticketInfoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.infoLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.infoValue {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}
+
+.infoValueHighlight {
+  color: $color-success;
+}
+
+.timeSlotsTitle {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+  margin-bottom: $spacing-sm;
+}
+
+.timeSlots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+}
+
+.timeSlot {
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-md;
+  background-color: $color-bg-hover;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  transition: all $transition-fast;
+
+  &.active {
+    background-color: rgba(37, 99, 235, 0.1);
+    color: $color-primary;
+    border: 2rpx solid $color-primary;
+  }
+
+  &.disabled {
+    opacity: 0.5;
+  }
+}
+
+.timeSlotTime {
+  font-weight: $font-weight-medium;
+}
+
+.timeSlotRemaining {
+  font-size: $font-size-xs;
+  margin-top: 4rpx;
+}
+
+.buyButton {
+  width: 100%;
+  height: 80rpx;
+  border-radius: $radius-button;
+  background: $color-primary-gradient;
+  color: $color-text-white;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all $transition-fast;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.bottomBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: $color-bg-card;
+  padding: $spacing-md $page-padding;
+  padding-bottom: calc(#{$spacing-md} + env(safe-area-inset-bottom));
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 100;
+}
+
+.bottomTotal {
+  display: flex;
+  flex-direction: column;
+}
+
+.bottomTotalLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.bottomTotalPrice {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-price;
+}
+
+.bottomButton {
+  width: 240rpx;
+  height: 88rpx;
+  border-radius: $radius-button;
+  background: $color-primary-gradient;
+  color: $color-text-white;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.quantitySelector {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: $spacing-sm;
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $color-divider;
+}
+
+.quantityLabel {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+}
+
+.quantityControl {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.quantityBtn {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background-color: $color-bg-hover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-lg;
+  color: $color-text-primary;
+
+  &:active {
+    background-color: $color-border;
+  }
+
+  &.disabled {
+    opacity: 0.4;
+  }
+}
+
+.quantityValue {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  min-width: 60rpx;
+  text-align: center;
+}

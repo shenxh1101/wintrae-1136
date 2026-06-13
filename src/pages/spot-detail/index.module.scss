@@ -1,0 +1,331 @@
+@use '@/styles/variables.scss' as *;
+
+.spotDetailPage {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+  padding-bottom: 140rpx;
+}
+
+.banner {
+  width: 100%;
+  height: 480rpx;
+  position: relative;
+}
+
+.bannerImage {
+  width: 100%;
+  height: 100%;
+}
+
+.bannerOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: $spacing-xl $page-padding;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+}
+
+.spotName {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-text-white;
+  margin-bottom: $spacing-xs;
+}
+
+.spotTags {
+  display: flex;
+  gap: $spacing-xs;
+}
+
+.spotTag {
+  padding: 4rpx 12rpx;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: $radius-xs;
+  font-size: $font-size-xs;
+  color: $color-text-white;
+}
+
+.infoSection {
+  background-color: $color-bg-card;
+  margin: -40rpx $page-padding $spacing-md;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+  position: relative;
+  z-index: 10;
+}
+
+.ratingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+  padding-bottom: $spacing-md;
+  border-bottom: 1rpx solid $color-divider;
+}
+
+.ratingInfo {
+  display: flex;
+  align-items: baseline;
+  gap: $spacing-sm;
+}
+
+.ratingScore {
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  color: $color-accent;
+}
+
+.ratingStars {
+  font-size: $font-size-lg;
+}
+
+.ratingCount {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.favoriteBtn {
+  padding: $spacing-sm $spacing-md;
+  border-radius: $radius-button;
+  background-color: rgba(245, 63, 63, 0.1);
+  color: $color-error;
+  font-size: $font-size-sm;
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+
+  &.active {
+    background-color: $color-error;
+    color: $color-text-white;
+  }
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $spacing-md;
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.infoLabel {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.infoValue {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}
+
+.section {
+  background-color: $color-bg-card;
+  margin: 0 $page-padding $spacing-md;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.sectionIcon {
+  font-size: $font-size-lg;
+}
+
+.description {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.8;
+}
+
+.audioPlayer {
+  display: flex;
+  align-items: center;
+  padding: $spacing-md;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%);
+  border-radius: $radius-md;
+}
+
+.audioPlayBtn {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background: $color-primary-gradient;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: $color-text-white;
+  margin-right: $spacing-md;
+  flex-shrink: 0;
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.audioInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.audioTitle {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+  margin-bottom: 4rpx;
+  @include text-ellipsis;
+}
+
+.audioProgress {
+  height: 6rpx;
+  background-color: rgba(37, 99, 235, 0.2);
+  border-radius: 3rpx;
+  overflow: hidden;
+}
+
+.audioProgressBar {
+  height: 100%;
+  width: 30%;
+  background: $color-primary-gradient;
+  border-radius: 3rpx;
+}
+
+.audioTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+}
+
+.reviewList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.reviewItem {
+  padding-bottom: $spacing-md;
+  border-bottom: 1rpx solid $color-divider;
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}
+
+.reviewHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-sm;
+}
+
+.reviewerAvatar {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background-color: $color-bg-hover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  margin-right: $spacing-sm;
+}
+
+.reviewerInfo {
+  flex: 1;
+}
+
+.reviewerName {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}
+
+.reviewRating {
+  font-size: $font-size-xs;
+  color: $color-accent;
+}
+
+.reviewContent {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.6;
+}
+
+.reviewTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: $spacing-xs;
+}
+
+.bottomBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: $color-bg-card;
+  padding: $spacing-sm $page-padding;
+  padding-bottom: calc(#{$spacing-sm} + env(safe-area-inset-bottom));
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  z-index: 100;
+}
+
+.bottomActions {
+  display: flex;
+  gap: $spacing-lg;
+}
+
+.bottomAction {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.bottomActionIcon {
+  font-size: 32rpx;
+}
+
+.bottomActionText {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.bookButton {
+  flex: 1;
+  height: 88rpx;
+  border-radius: $radius-button;
+  background: $color-primary-gradient;
+  color: $color-text-white;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:active {
+    opacity: 0.9;
+  }
+}

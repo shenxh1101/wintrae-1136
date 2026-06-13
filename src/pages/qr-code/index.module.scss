@@ -1,0 +1,177 @@
+@use '@/styles/variables.scss' as *;
+
+.qrCodePage {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+}
+
+.header {
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #60a5fa 100%);
+  padding: $spacing-xl $page-padding 120rpx;
+  text-align: center;
+}
+
+.headerTitle {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-text-white;
+  margin-bottom: $spacing-xs;
+}
+
+.headerSubtitle {
+  font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.qrCard {
+  margin: -80rpx $page-padding $spacing-md;
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-xl;
+  box-shadow: $shadow-card;
+  text-align: center;
+  position: relative;
+  z-index: 10;
+}
+
+.spotName {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-xs;
+}
+
+.ticketType {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-lg;
+}
+
+.qrCodeContainer {
+  width: 400rpx;
+  height: 400rpx;
+  margin: 0 auto $spacing-lg;
+  padding: $spacing-md;
+  background-color: #ffffff;
+  border: 2rpx solid $color-border;
+  border-radius: $radius-md;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qrCode {
+  width: 100%;
+  height: 100%;
+  background: repeating-conic-gradient(#000 0 25%, #fff 0 50%) 50% / 40rpx 40rpx;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qrCodeCenter {
+  width: 80rpx;
+  height: 80rpx;
+  background-color: $color-primary;
+  border-radius: $radius-sm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  color: $color-text-white;
+}
+
+.qrCodeText {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  font-family: monospace;
+  letter-spacing: 2rpx;
+}
+
+.infoSection {
+  background-color: $color-bg-card;
+  margin: 0 $page-padding $spacing-md;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.infoItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-sm 0;
+  border-bottom: 1rpx solid $color-divider;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.infoLabel {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.infoValue {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}
+
+.tipSection {
+  margin: 0 $page-padding;
+  padding: $spacing-lg;
+  background-color: rgba(245, 158, 11, 0.1);
+  border-radius: $radius-md;
+}
+
+.tipTitle {
+  font-size: $font-size-sm;
+  color: $color-accent;
+  font-weight: $font-weight-semibold;
+  margin-bottom: $spacing-sm;
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.tipContent {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  line-height: 1.6;
+}
+
+.actionButtons {
+  display: flex;
+  gap: $spacing-md;
+  margin: $spacing-lg $page-padding;
+}
+
+.actionBtn {
+  flex: 1;
+  height: 88rpx;
+  border-radius: $radius-button;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  transition: all $transition-fast;
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.actionBtnPrimary {
+  background: $color-primary-gradient;
+  color: $color-text-white;
+}
+
+.actionBtnSecondary {
+  background-color: $color-bg-card;
+  color: $color-text-primary;
+  box-shadow: $shadow-card;
+}

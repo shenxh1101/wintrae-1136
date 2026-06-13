@@ -1,0 +1,56 @@
+@use '@/styles/variables.scss' as *;
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $radius-sm;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &Text {
+    font-size: $font-size-xs;
+    line-height: 1;
+  }
+}
+
+.tagDefault {
+  background-color: $color-bg-tag;
+  color: $color-tag-text;
+}
+
+.tagPrimary {
+  background-color: rgba(37, 99, 235, 0.1);
+  color: $color-primary;
+}
+
+.tagSuccess {
+  background-color: rgba(0, 180, 42, 0.1);
+  color: $color-success;
+}
+
+.tagWarning {
+  background-color: rgba(255, 125, 0, 0.1);
+  color: $color-warning;
+}
+
+.tagError {
+  background-color: rgba(245, 63, 63, 0.1);
+  color: $color-error;
+}
+
+.tagSmall {
+  padding: 4rpx 12rpx;
+
+  .tagText {
+    font-size: $font-size-xs;
+  }
+}
+
+.tagMedium {
+  padding: 8rpx 16rpx;
+
+  .tagText {
+    font-size: $font-size-sm;
+  }
+}

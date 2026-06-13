@@ -1,0 +1,206 @@
+@use '@/styles/variables.scss' as *;
+
+.homePage {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+  padding-bottom: $spacing-xl;
+}
+
+.header {
+  position: relative;
+  height: 320rpx;
+  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #60a5fa 100%);
+  padding: 0 $page-padding;
+  padding-top: 88rpx;
+}
+
+.headerTitle {
+  color: $color-text-white;
+  font-size: $font-size-xxl;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-sm;
+}
+
+.headerSubtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: $font-size-sm;
+}
+
+.searchBar {
+  position: absolute;
+  bottom: -32rpx;
+  left: $page-padding;
+  right: $page-padding;
+  height: 72rpx;
+  background-color: $color-bg-card;
+  border-radius: $radius-button;
+  display: flex;
+  align-items: center;
+  padding: 0 $spacing-lg;
+  box-shadow: $shadow-float;
+}
+
+.searchIcon {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+  margin-right: $spacing-sm;
+}
+
+.searchText {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+  flex: 1;
+}
+
+.content {
+  padding: 0 $page-padding;
+  margin-top: 64rpx;
+}
+
+.bannerSection {
+  margin-bottom: $spacing-lg;
+}
+
+.banner {
+  height: 280rpx;
+  border-radius: $radius-lg;
+  overflow: hidden;
+}
+
+.bannerItem {
+  width: 100%;
+  height: 100%;
+}
+
+.bannerImage {
+  width: 100%;
+  height: 100%;
+}
+
+.functionSection {
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.functionGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $spacing-lg 0;
+}
+
+.functionItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all $transition-fast;
+
+  &:active {
+    opacity: 0.8;
+    transform: scale(0.95);
+  }
+}
+
+.functionIcon {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: $radius-lg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44rpx;
+  margin-bottom: $spacing-sm;
+}
+
+.functionName {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-md;
+}
+
+.sectionTitle {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.sectionMore {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.hotSpotsSection {
+  margin-bottom: $spacing-lg;
+}
+
+.spotList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.queueSection {
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.queueList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.queueItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: $spacing-md;
+  border-bottom: 1rpx solid $color-divider;
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}
+
+.queueSpotInfo {
+  flex: 1;
+}
+
+.queueSpotName {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+  margin-bottom: 4rpx;
+}
+
+.queueTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.queueLevel {
+  text-align: right;
+}
+
+.queueLevelText {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+}
+
+.queueWaitTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-top: 4rpx;
+}

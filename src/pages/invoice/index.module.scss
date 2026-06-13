@@ -1,0 +1,310 @@
+@use '@/styles/variables.scss' as *;
+
+.invoicePage {
+  min-height: 100vh;
+  background-color: $color-bg-page;
+  padding-bottom: $spacing-xl;
+}
+
+.tabBar {
+  display: flex;
+  background-color: $color-bg-card;
+  padding: $spacing-sm 0;
+  box-shadow: $shadow-card;
+}
+
+.tabItem {
+  flex: 1;
+  text-align: center;
+  padding: $spacing-sm 0;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
+  position: relative;
+  transition: all $transition-fast;
+
+  &.active {
+    color: $color-primary;
+    font-weight: $font-weight-semibold;
+  }
+
+  &.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 48rpx;
+    height: 6rpx;
+    background: $color-primary-gradient;
+    border-radius: 3rpx;
+  }
+}
+
+.content {
+  padding: $spacing-md $page-padding;
+}
+
+.formSection {
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+  margin-bottom: $spacing-md;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-md;
+}
+
+.typeSelector {
+  display: flex;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+}
+
+.typeOption {
+  flex: 1;
+  padding: $spacing-lg;
+  border-radius: $radius-md;
+  background-color: $color-bg-hover;
+  text-align: center;
+  transition: all $transition-fast;
+
+  &.active {
+    background-color: rgba(37, 99, 235, 0.1);
+    border: 2rpx solid $color-primary;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.typeIcon {
+  font-size: 48rpx;
+  margin-bottom: $spacing-xs;
+}
+
+.typeName {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}
+
+.formItem {
+  margin-bottom: $spacing-md;
+}
+
+.formLabel {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-xs;
+}
+
+.formInput {
+  height: 80rpx;
+  background-color: $color-bg-hover;
+  border-radius: $radius-md;
+  padding: 0 $spacing-md;
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  display: flex;
+  align-items: center;
+}
+
+.formInputPlaceholder {
+  color: $color-text-tertiary;
+}
+
+.orderSelector {
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+  margin-bottom: $spacing-md;
+}
+
+.orderItem {
+  display: flex;
+  align-items: center;
+  padding: $spacing-md 0;
+  border-bottom: 1rpx solid $color-divider;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.orderCheck {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  border: 2rpx solid $color-border;
+  margin-right: $spacing-md;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &.active {
+    background-color: $color-primary;
+    border-color: $color-primary;
+    color: $color-text-white;
+  }
+}
+
+.orderInfo {
+  flex: 1;
+}
+
+.orderName {
+  font-size: $font-size-sm;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+  margin-bottom: 4rpx;
+}
+
+.orderMeta {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.orderAmount {
+  font-size: $font-size-md;
+  color: $color-price;
+  font-weight: $font-weight-semibold;
+}
+
+.submitButton {
+  width: 100%;
+  height: 88rpx;
+  border-radius: $radius-button;
+  background: $color-primary-gradient;
+  color: $color-text-white;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: $spacing-lg;
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.invoiceList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.invoiceItem {
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.invoiceHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-sm;
+}
+
+.invoiceTitle {
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+}
+
+.invoiceStatus {
+  padding: 4rpx 12rpx;
+  border-radius: $radius-xs;
+  font-size: $font-size-xs;
+}
+
+.statusIssued {
+  background-color: rgba(0, 180, 42, 0.1);
+  color: $color-success;
+}
+
+.statusPending {
+  background-color: rgba(255, 125, 0, 0.1);
+  color: $color-warning;
+}
+
+.invoiceInfo {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.invoiceInfoItem {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  display: flex;
+  justify-content: space-between;
+}
+
+.invoiceInfoLabel {
+  color: $color-text-tertiary;
+}
+
+.invoiceActions {
+  display: flex;
+  gap: $spacing-md;
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1rpx solid $color-divider;
+}
+
+.actionBtn {
+  flex: 1;
+  height: 64rpx;
+  border-radius: $radius-button;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  transition: all $transition-fast;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.actionBtnPrimary {
+  background-color: rgba(37, 99, 235, 0.1);
+  color: $color-primary;
+}
+
+.actionBtnSecondary {
+  background-color: $color-bg-hover;
+  color: $color-text-secondary;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 0;
+}
+
+.emptyIcon {
+  font-size: 120rpx;
+  margin-bottom: $spacing-md;
+  opacity: 0.5;
+}
+
+.emptyText {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+}

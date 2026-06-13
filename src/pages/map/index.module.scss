@@ -1,0 +1,268 @@
+@use '@/styles/variables.scss' as *;
+
+.mapPage {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: $color-bg-page;
+}
+
+.mapContainer {
+  flex: 1;
+  position: relative;
+  background: linear-gradient(135deg, #e0f2fe 0%, #dcfce7 50%, #fef3c7 100%);
+  overflow: hidden;
+}
+
+.mapContent {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.mapPath {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.spotMarker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+  transition: all $transition-fast;
+
+  &:active {
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+.markerDot {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  background-color: $color-primary;
+  border: 4rpx solid #ffffff;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
+}
+
+.markerLabel {
+  margin-top: 8rpx;
+  padding: 4rpx 12rpx;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+  color: $color-text-primary;
+  white-space: nowrap;
+  box-shadow: $shadow-card;
+}
+
+.facilityMarker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 50%;
+  background-color: $color-secondary;
+  border: 3rpx solid #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18rpx;
+  z-index: 5;
+}
+
+.currentLocation {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+}
+
+.locationDot {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background-color: rgba(37, 99, 235, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.locationInner {
+  width: 24rpx;
+  height: 24rpx;
+  border-radius: 50%;
+  background-color: $color-primary;
+  border: 3rpx solid #ffffff;
+}
+
+.bottomPanel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: $color-bg-card;
+  border-radius: $radius-xl $radius-xl 0 0;
+  padding: $spacing-lg $page-padding;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.1);
+}
+
+.routeTabs {
+  display: flex;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.routeTab {
+  flex-shrink: 0;
+  padding: $spacing-sm $spacing-lg;
+  border-radius: $radius-button;
+  background-color: $color-bg-hover;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  transition: all $transition-fast;
+
+  &.active {
+    background: $color-primary-gradient;
+    color: $color-text-white;
+  }
+}
+
+.facilityFilter {
+  display: flex;
+  justify-content: space-around;
+}
+
+.facilityItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: $spacing-sm;
+  border-radius: $radius-md;
+  transition: all $transition-fast;
+
+  &.active {
+    background-color: rgba(37, 99, 235, 0.1);
+  }
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.facilityIcon {
+  font-size: 36rpx;
+  margin-bottom: 4rpx;
+}
+
+.facilityName {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.floatingButtons {
+  position: absolute;
+  right: $page-padding;
+  top: 200rpx;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  z-index: 15;
+}
+
+.floatBtn {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background-color: $color-bg-card;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  box-shadow: $shadow-float;
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.spotPopup {
+  position: absolute;
+  bottom: 280rpx;
+  left: $page-padding;
+  right: $page-padding;
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-popup;
+  z-index: 30;
+}
+
+.popupHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: $spacing-sm;
+}
+
+.popupTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.popupClose {
+  font-size: $font-size-lg;
+  color: $color-text-tertiary;
+  padding: 4rpx;
+}
+
+.popupInfo {
+  display: flex;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.popupInfoItem {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.popupActions {
+  display: flex;
+  gap: $spacing-md;
+}
+
+.popupBtn {
+  flex: 1;
+  height: 72rpx;
+  border-radius: $radius-button;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  transition: all $transition-fast;
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.popupBtnPrimary {
+  background: $color-primary-gradient;
+  color: $color-text-white;
+}
+
+.popupBtnSecondary {
+  background-color: $color-bg-hover;
+  color: $color-text-primary;
+}

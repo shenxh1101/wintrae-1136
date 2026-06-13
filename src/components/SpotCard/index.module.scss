@@ -1,0 +1,99 @@
+@use '@/styles/variables.scss' as *;
+
+.spotCard {
+  display: flex;
+  background-color: $color-bg-card;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+
+  &:active {
+    transform: scale(0.98);
+    box-shadow: $shadow-card-hover;
+  }
+}
+
+.spotImage {
+  width: 220rpx;
+  height: 220rpx;
+  flex-shrink: 0;
+}
+
+.spotInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: $spacing-md;
+  min-width: 0;
+}
+
+.spotHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-xs;
+}
+
+.spotName {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  @include text-ellipsis;
+  flex: 1;
+  margin-right: $spacing-sm;
+}
+
+.queueBadge {
+  padding: 4rpx 12rpx;
+  border-radius: $radius-xs;
+  flex-shrink: 0;
+}
+
+.queueText {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+}
+
+.spotMeta {
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-sm;
+}
+
+.rating {
+  font-size: $font-size-sm;
+  color: $color-accent;
+  font-weight: $font-weight-medium;
+  margin-right: $spacing-sm;
+}
+
+.reviewCount {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.tags {
+  display: flex;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-sm;
+  flex-wrap: wrap;
+}
+
+.spotFooter {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.duration {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.address {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  @include text-ellipsis;
+}
