@@ -12,21 +12,78 @@
   position: relative;
   background: linear-gradient(135deg, #e0f2fe 0%, #dcfce7 50%, #fef3c7 100%);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.routeHeader {
+  background-color: rgba(255, 255, 255, 0.95);
+  padding: $spacing-md $page-padding;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: $shadow-card;
+  z-index: 25;
+  gap: $spacing-md;
+}
+
+.routeHeaderLeft {
+  flex: 1;
+  min-width: 0;
+}
+
+.routeHeaderName {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+}
+
+.routeHeaderDesc {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.routeHeaderStats {
+  display: flex;
+  gap: $spacing-md;
+  flex-shrink: 0;
+}
+
+.routeStatItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.routeStatValue {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-primary;
+}
+
+.routeStatLabel {
+  font-size: 20rpx;
+  color: $color-text-tertiary;
+  margin-top: 2rpx;
 }
 
 .mapContent {
   position: relative;
+  flex: 1;
   width: 100%;
-  height: 100%;
 }
 
-.mapPath {
+.routeLineOverlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 10%;
+  left: 10%;
+  right: 10%;
+  bottom: 10%;
+  border-radius: 50%;
   pointer-events: none;
+  filter: blur(30rpx);
+  z-index: 1;
 }
 
 .spotMarker {
@@ -41,15 +98,26 @@
   &:active {
     transform: translate(-50%, -50%) scale(1.1);
   }
+
+  &.selected {
+    z-index: 20;
+    transform: translate(-50%, -50%) scale(1.15);
+  }
 }
 
-.markerDot {
-  width: 40rpx;
-  height: 40rpx;
+.markerIndex {
+  width: 48rpx;
+  height: 48rpx;
   border-radius: 50%;
   background-color: $color-primary;
   border: 4rpx solid #ffffff;
-  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-bold;
 }
 
 .markerLabel {
@@ -61,21 +129,23 @@
   color: $color-text-primary;
   white-space: nowrap;
   box-shadow: $shadow-card;
+  font-weight: $font-weight-medium;
 }
 
 .facilityMarker {
   position: absolute;
   transform: translate(-50%, -50%);
-  width: 32rpx;
-  height: 32rpx;
+  width: 36rpx;
+  height: 36rpx;
   border-radius: 50%;
-  background-color: $color-secondary;
-  border: 3rpx solid #ffffff;
+  background-color: #ffffff;
+  border: 3rpx solid $color-secondary;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 18rpx;
   z-index: 5;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
 }
 
 .currentLocation {
@@ -85,32 +155,47 @@
 }
 
 .locationDot {
-  width: 48rpx;
-  height: 48rpx;
+  width: 56rpx;
+  height: 56rpx;
   border-radius: 50%;
   background-color: rgba(37, 99, 235, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 20rpx rgba(37, 99, 235, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+  }
 }
 
 .locationInner {
-  width: 24rpx;
-  height: 24rpx;
+  width: 28rpx;
+  height: 28rpx;
   border-radius: 50%;
   background-color: $color-primary;
   border: 3rpx solid #ffffff;
 }
 
 .bottomPanel {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: relative;
   background-color: $color-bg-card;
   border-radius: $radius-xl $radius-xl 0 0;
   padding: $spacing-lg $page-padding;
+  padding-bottom: calc(#{$spacing-lg} + env(safe-area-inset-bottom));
   box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.1);
+  max-height: 55vh;
+  display: flex;
+  flex-direction: column;
+  z-index: 25;
 }
 
 .routeTabs {
@@ -129,23 +214,33 @@
   font-size: $font-size-sm;
   color: $color-text-secondary;
   transition: all $transition-fast;
+  border: 2rpx solid transparent;
+  font-weight: $font-weight-medium;
 
   &.active {
-    background: $color-primary-gradient;
-    color: $color-text-white;
+    font-weight: $font-weight-semibold;
+    border: 2rpx solid $color-primary;
+  }
+
+  &:active {
+    opacity: 0.8;
   }
 }
 
 .facilityFilter {
   display: flex;
   justify-content: space-around;
+  padding: $spacing-sm 0;
+  border-top: 1rpx solid $color-divider;
+  border-bottom: 1rpx solid $color-divider;
+  margin-bottom: $spacing-md;
 }
 
 .facilityItem {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
   border-radius: $radius-md;
   transition: all $transition-fast;
 
@@ -168,10 +263,107 @@
   color: $color-text-secondary;
 }
 
+.routeSpotsList {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.routeSpotsTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: $spacing-sm;
+}
+
+.routeSpotsScroll {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.routeSpotItem {
+  display: flex;
+  align-items: center;
+  padding: $spacing-md;
+  background-color: $color-bg-hover;
+  border-radius: $radius-md;
+  gap: $spacing-md;
+  transition: all $transition-fast;
+
+  &.selected {
+    background-color: rgba(37, 99, 235, 0.1);
+    border: 2rpx solid $color-primary;
+  }
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.routeSpotIndex {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  background-color: $color-primary;
+  color: #fff;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.routeSpotInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.routeSpotName {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+}
+
+.routeSpotDesc {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.routeSpotActions {
+  display: flex;
+  gap: $spacing-xs;
+  flex-shrink: 0;
+}
+
+.routeSpotAction {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background-color: rgba(37, 99, 235, 0.1);
+  color: $color-primary;
+  font-size: $font-size-md;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: $font-weight-bold;
+
+  &:active {
+    opacity: 0.8;
+    background-color: rgba(37, 99, 235, 0.2);
+  }
+}
+
 .floatingButtons {
   position: absolute;
   right: $page-padding;
-  top: 200rpx;
+  top: $spacing-lg;
   display: flex;
   flex-direction: column;
   gap: $spacing-md;
@@ -196,7 +388,7 @@
 
 .spotPopup {
   position: absolute;
-  bottom: 280rpx;
+  bottom: 20rpx;
   left: $page-padding;
   right: $page-padding;
   background-color: $color-bg-card;
@@ -229,6 +421,7 @@
   display: flex;
   gap: $spacing-md;
   margin-bottom: $spacing-md;
+  flex-wrap: wrap;
 }
 
 .popupInfoItem {

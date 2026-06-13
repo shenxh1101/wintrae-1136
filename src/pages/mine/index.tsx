@@ -1,18 +1,25 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text } from '@tarojs/components';
 import Taro from '@tarojs/taro';
+import { useAppStore } from '@/store/app-store';
 import styles from './index.module.scss';
 
 const MinePage: React.FC = () => {
-  const orderTypes = [
-    { id: 'pending', name: '待付款', icon: '💰', count: 0 },
-    { id: 'paid', name: '待使用', icon: '🎫', count: 1 },
-    { id: 'used', name: '已使用', icon: '✅', count: 2 },
-    { id: 'refund', name: '退款/售后', icon: '↩️', count: 0 }
-  ];
+  const favoriteSpotIds = useAppStore(state => state.favoriteSpotIds);
+  const reviewList = useAppStore(state => state.reviewList);
+  const ticketOrders = useAppStore(state => state.ticketOrders);
+
+  const orderTypes = useMemo(() => {
+    return [
+      { id: 'pending', name: '待付款', icon: '💰', count: ticketOrders.filter(o => o.status === 'pending').length },
+      { id: 'paid', name: '待使用', icon: '🎫', count: ticketOrders.filter(o => o.status === 'paid').length },
+      { id: 'used', name: '已使用', icon: '✅', count: ticketOrders.filter(o => o.status === 'used').length },
+      { id: 'refund', name: '退款/售后', icon: '↩️', count: ticketOrders.filter(o => o.status === 'refund').length }
+    ];
+  }, [ticketOrders]);
 
   const menuItems = [
-    { id: 'favorites', name: '我的收藏', icon: '❤️', path: '' },
+    { id: 'favorites', name: '我的收藏', icon: '❤️', path: '/pages/itinerary/index?tab=1', count: favoriteSpotIds.length },
     { id: 'footprint', name: '浏览足迹', icon: '👣', path: '' },
     { id: 'coupon', name: '优惠券', icon: '🎟️', path: '' },
     { id: 'invoice', name: '电子发票', icon: '🧾', path: '/pages/invoice/index' },
@@ -33,7 +40,11 @@ const MinePage: React.FC = () => {
 
   const handleMenuClick = (item: typeof menuItems[0]) => {
     console.log('[Mine] 点击菜单:', item.name);
-    if (item.path) {
+    if (item.id === 'favorites') {
+      Taro.switchTab({ url: '/pages/itinerary/index' }).catch(err => {
+        console.error('[Mine] 跳转失败:', err);
+      });
+    } else if (item.path) {
       Taro.navigateTo({ url: item.path }).catch(err => {
         console.error('[Mine] 跳转失败:', err);
       });
@@ -73,15 +84,15 @@ const MinePage: React.FC = () => {
 
         <View className={styles.statsRow}>
           <View className={styles.statItem}>
-            <Text className={styles.statValue}>3</Text>
+            <Text className={styles.statValue}>{favoriteSpotIds.length}</Text>
             <Text className={styles.statLabel}>收藏景点</Text>
           </View>
           <View className={styles.statItem}>
-            <Text className={styles.statValue}>5</Text>
+            <Text className={styles.statValue}>{ticketOrders.length}</Text>
             <Text className={styles.statLabel}>游览记录</Text>
           </View>
           <View className={styles.statItem}>
-            <Text className={styles.statValue}>2</Text>
+            <Text className={styles.statValue}>{reviewList.length}</Text>
             <Text className={styles.statLabel}>我的评价</Text>
           </View>
         </View>
@@ -103,7 +114,7 @@ const MinePage: React.FC = () => {
                 <Text>{item.icon}</Text>
                 {item.count > 0 && (
                   <View className={styles.orderBadge}>
-                    <Text>{item.count}</Text>
+                    <Text>{item.count > 99 ? '99+' : item.count}</Text>
                   </View>
                 )}
               </View>
@@ -124,6 +135,9 @@ const MinePage: React.FC = () => {
               <Text>{item.icon}</Text>
             </View>
             <Text className={styles.menuText}>{item.name}</Text>
+            {typeof item.count === 'number' && item.count > 0 && (
+              <Text className={styles.menuCount}>{item.count}</Text>
+            )}
             <Text className={styles.menuArrow}>›</Text>
           </View>
         ))}

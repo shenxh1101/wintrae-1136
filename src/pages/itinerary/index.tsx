@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import classnames from 'classnames';
+import { useAppStore } from '@/store/app-store';
 import { recommendedItineraries } from '@/data/itinerary';
-import { getFavoriteSpots } from '@/data/spots';
-import { Itinerary } from '@/types';
+import { spotsData } from '@/data/spots';
+import { Itinerary, Spot } from '@/types';
 import styles from './index.module.scss';
 
 const ItineraryPage: React.FC = () => {
@@ -12,7 +13,14 @@ const ItineraryPage: React.FC = () => {
 
   const tabs = ['推荐路线', '我的收藏', '行程规划'];
 
-  const favoriteSpots = getFavoriteSpots();
+  const favoriteSpotIds = useAppStore(state => state.favoriteSpotIds);
+  const toggleFavorite = useAppStore(state => state.toggleFavorite);
+
+  const favoriteSpots = useMemo(() => {
+    return favoriteSpotIds
+      .map(id => spotsData.find(s => s.id === id))
+      .filter((s): s is Spot => !!s);
+  }, [favoriteSpotIds]);
 
   const handleTabChange = (index: number) => {
     console.log('[Itinerary] 切换Tab:', tabs[index]);
@@ -44,6 +52,12 @@ const ItineraryPage: React.FC = () => {
     }).catch(err => {
       console.error('[Itinerary] 跳转详情失败:', err);
     });
+  };
+
+  const handleRemoveFavorite = (spotId: string) => {
+    console.log('[Itinerary] 取消收藏:', spotId);
+    toggleFavorite(spotId);
+    Taro.showToast({ title: '已取消收藏', icon: 'none' });
   };
 
   const renderRecommended = () => (
@@ -122,9 +136,25 @@ const ItineraryPage: React.FC = () => {
                 className={styles.timelineContent}
                 onClick={() => handleSpotClick(spot.id)}
               >
-                <Text className={styles.timelineTime}>景点 {index + 1}</Text>
-                <Text className={styles.timelineTitle}>{spot.name}</Text>
-                <Text className={styles.timelineDesc}>⭐ {spot.rating} · {spot.duration}</Text>
+                <Image
+                  className={styles.timelineImage}
+                  src={spot.image}
+                  mode="aspectFill"
+                />
+                <View className={styles.timelineText}>
+                  <Text className={styles.timelineTime}>景点 {index + 1}</Text>
+                  <Text className={styles.timelineTitle}>{spot.name}</Text>
+                  <Text className={styles.timelineDesc}>⭐ {spot.rating} · {spot.duration}</Text>
+                </View>
+                <View
+                  className={styles.timelineRemove}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemoveFavorite(spot.id);
+                  }}
+                >
+                  <Text>取消</Text>
+                </View>
               </View>
             </View>
           ))}
@@ -133,6 +163,12 @@ const ItineraryPage: React.FC = () => {
         <View className={styles.emptyState}>
           <Text className={styles.emptyIcon}>❤️</Text>
           <Text className={styles.emptyText}>暂无收藏景点</Text>
+          <View
+            className={styles.emptyAction}
+            onClick={() => Taro.switchTab({ url: '/pages/home/index' })}
+          >
+            <Text>去逛逛</Text>
+          </View>
         </View>
       )}
     </View>

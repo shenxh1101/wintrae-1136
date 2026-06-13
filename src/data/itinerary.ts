@@ -1,10 +1,60 @@
 import { Itinerary, ItineraryItem, RouteType } from '@/types';
+import { Spot } from '@/types';
+
+export interface RouteSpots {
+  routeId: string;
+  name: string;
+  description: string;
+  color: string;
+  spotIds: string[];
+  estimatedTime: string;
+  distance: string;
+}
 
 export const routeTypes: RouteType[] = [
   { id: 'default', name: '经典路线', icon: '', description: '经典景点全覆盖' },
   { id: 'family', name: '亲子路线', icon: '', description: '适合亲子家庭游玩' },
   { id: 'photo', name: '摄影路线', icon: '', description: '最佳拍照打卡点' },
   { id: 'accessible', name: '无障碍路线', icon: '', description: '无障碍设施完善' }
+];
+
+export const routeSpotsMap: RouteSpots[] = [
+  {
+    routeId: 'default',
+    name: '经典路线',
+    description: '覆盖景区最具代表性的核心景点',
+    color: '#2563eb',
+    spotIds: ['1', '2', '7', '3'],
+    estimatedTime: '约4-6小时',
+    distance: '约5公里'
+  },
+  {
+    routeId: 'family',
+    name: '亲子路线',
+    description: '寓教于乐，适合带小朋友一起游玩',
+    color: '#f59e0b',
+    spotIds: ['6', '4', '8', '1'],
+    estimatedTime: '约5-7小时',
+    distance: '约4公里'
+  },
+  {
+    routeId: 'photo',
+    name: '摄影路线',
+    description: '精选最佳拍摄角度，出片率极高',
+    color: '#10b981',
+    spotIds: ['3', '1', '2', '7'],
+    estimatedTime: '约3-5小时',
+    distance: '约4.5公里'
+  },
+  {
+    routeId: 'accessible',
+    name: '无障碍路线',
+    description: '全程无障碍通道，设施完善',
+    color: '#8b5cf6',
+    spotIds: ['1', '2', '5', '4'],
+    estimatedTime: '约3-4小时',
+    distance: '约3公里'
+  }
 ];
 
 const halfDayItinerary: Itinerary = {

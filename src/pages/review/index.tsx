@@ -1,22 +1,29 @@
 import React, { useState } from 'react';
-import { View, Text, Image, ScrollView } from '@tarojs/components';
+import { View, Text, Image, ScrollView, Input, Textarea } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import classnames from 'classnames';
+import { useAppStore } from '@/store/app-store';
 import { spotsData } from '@/data/spots';
-import { reviewList } from '@/data/service';
+import { Review } from '@/types';
+import { formatTime, generateRandomId } from '@/utils';
 import styles from './index.module.scss';
 
 const ReviewPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [rating, setRating] = useState(5);
   const [content, setContent] = useState('');
+  const [contact, setContact] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [submitting, setSubmitting] = useState(false);
   const [subRatings, setSubRatings] = useState({
     environment: 5,
     service: 5,
     value: 5
   });
+
+  const reviewList = useAppStore(state => state.reviewList);
+  const addReview = useAppStore(state => state.addReview);
 
   const tabs = ['写评价', '我的评价'];
 
@@ -61,21 +68,72 @@ const ReviewPage: React.FC = () => {
     setIsAnonymous(!isAnonymous);
   };
 
-  const handleSubmit = () => {
-    console.log('[Review] 提交评价');
+  const validateForm = (): boolean => {
+    if (rating === 0) {
+      Taro.showToast({ title: '请选择评分', icon: 'none' });
+      return false;
+    }
     if (!content.trim()) {
       Taro.showToast({ title: '请输入评价内容', icon: 'none' });
-      return;
+      return false;
     }
-    Taro.showLoading({ title: '提交中...' });
-    setTimeout(() => {
-      Taro.hideLoading();
-      Taro.showToast({ title: '评价成功', icon: 'success' });
-      setActiveTab(1);
-    }, 1000);
+    if (content.trim().length < 5) {
+      Taro.showToast({ title: '评价至少5个字符', icon: 'none' });
+      return false;
+    }
+    if (!contact.trim()) {
+      Taro.showToast({ title: '请输入联系方式', icon: 'none' });
+      return false;
+    }
+    const phoneReg = /^1[3-9]\d{9}$/;
+    if (!phoneReg.test(contact.trim())) {
+      Taro.showToast({ title: '请输入正确的手机号', icon: 'none' });
+      return false;
+    }
+    return true;
   };
 
-  const renderStars = (count: number, size: 'small' | 'large' = 'large') => {
+  const handleSubmit = () => {
+    console.log('[Review] 提交评价');
+    if (!validateForm()) return;
+
+    setSubmitting(true);
+    Taro.showLoading({ title: '提交中...' });
+
+    setTimeout(() => {
+      const newReview: Review = {
+        id: generateRandomId(),
+        spotId: currentSpot.id,
+        spotName: currentSpot.name,
+        userName: isAnonymous ? '匿名用户' : '游客',
+        userAvatar: '',
+        rating,
+        subRatings,
+        content: content.trim(),
+        images: [],
+        tags: [...selectedTags],
+        contact: contact.trim(),
+        isAnonymous,
+        createTime: formatTime(new Date())
+      };
+
+      addReview(newReview);
+      console.log('[Review] 提交成功:', newReview);
+
+      Taro.hideLoading();
+      Taro.showToast({ title: '评价成功', icon: 'success' });
+
+      setContent('');
+      setContact('');
+      setRating(5);
+      setSelectedTags([]);
+      setSubRatings({ environment: 5, service: 5, value: 5 });
+      setActiveTab(1);
+      setSubmitting(false);
+    }, 800);
+  };
+
+  const renderStars = (count: number, size: 'small' | 'large' = 'large', interactive: boolean = true) => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
       stars.push(
@@ -83,7 +141,7 @@ const ReviewPage: React.FC = () => {
           key={i}
           className={size === 'large' ? styles.star : ''}
           style={size === 'small' ? { fontSize: '24rpx' } : {}}
-          onClick={size === 'large' ? () => handleRatingClick(i) : undefined}
+          onClick={interactive && size === 'large' ? () => handleRatingClick(i) : undefined}
         >
           {i <= count ? '⭐' : '☆'}
         </Text>
@@ -93,7 +151,7 @@ const ReviewPage: React.FC = () => {
   };
 
   const renderReviewForm = () => (
-    <ScrollView scrollY>
+    <ScrollView scrollY className={styles.formScroll}>
       <View className={styles.spotInfo}>
         <Image
           className={styles.spotImage}
@@ -118,39 +176,60 @@ const ReviewPage: React.FC = () => {
             <Text className={styles.subRatingLabel}>环境</Text>
             <View
               className={styles.subRatingStars}
-              onClick={() => handleSubRatingClick('environment', subRatings.environment === 5 ? 4 : 5)}
             >
-              {renderStars(subRatings.environment, 'small')}
+              {[1, 2, 3, 4, 5].map(v => (
+                <Text
+                  key={v}
+                  style={{ fontSize: '24rpx' }}
+                  onClick={() => handleSubRatingClick('environment', v)}
+                >
+                  {v <= subRatings.environment ? '⭐' : '☆'}
+                </Text>
+              ))}
             </View>
           </View>
           <View className={styles.subRatingItem}>
             <Text className={styles.subRatingLabel}>服务</Text>
-            <View
-              className={styles.subRatingStars}
-              onClick={() => handleSubRatingClick('service', subRatings.service === 5 ? 4 : 5)}
-            >
-              {renderStars(subRatings.service, 'small')}
+            <View className={styles.subRatingStars}>
+              {[1, 2, 3, 4, 5].map(v => (
+                <Text
+                  key={v}
+                  style={{ fontSize: '24rpx' }}
+                  onClick={() => handleSubRatingClick('service', v)}
+                >
+                  {v <= subRatings.service ? '⭐' : '☆'}
+                </Text>
+              ))}
             </View>
           </View>
           <View className={styles.subRatingItem}>
             <Text className={styles.subRatingLabel}>性价比</Text>
-            <View
-              className={styles.subRatingStars}
-              onClick={() => handleSubRatingClick('value', subRatings.value === 5 ? 4 : 5)}
-            >
-              {renderStars(subRatings.value, 'small')}
+            <View className={styles.subRatingStars}>
+              {[1, 2, 3, 4, 5].map(v => (
+                <Text
+                  key={v}
+                  style={{ fontSize: '24rpx' }}
+                  onClick={() => handleSubRatingClick('value', v)}
+                >
+                  {v <= subRatings.value ? '⭐' : '☆'}
+                </Text>
+              ))}
             </View>
           </View>
         </View>
       </View>
 
       <View className={styles.contentSection}>
-        <Text className={styles.sectionTitle}>评价内容</Text>
-        <View className={styles.textarea}>
-          <Text className={content ? '' : styles.textareaPlaceholder}>
-            {content || '分享您的游玩体验，帮助其他游客...'}
-          </Text>
-        </View>
+        <Text className={styles.sectionTitle}>评价内容 <Text style={{ color: '#ef4444' }}>*</Text></Text>
+        <Textarea
+          className={styles.textareaReal}
+          placeholder="分享您的游玩体验，帮助其他游客..."
+          placeholderClass={styles.textareaPlaceholder}
+          value={content}
+          onInput={(e) => setContent(e.detail.value)}
+          maxlength={500}
+          autoHeight
+        />
         <Text className={styles.textareaCount}>{content.length}/500</Text>
       </View>
 
@@ -180,6 +259,21 @@ const ReviewPage: React.FC = () => {
           </View>
         </View>
       </View>
+
+      <View className={styles.contentSection}>
+        <Text className={styles.sectionTitle}>联系方式 <Text style={{ color: '#ef4444' }}>*</Text></Text>
+        <Input
+          className={styles.formInputReal}
+          type="number"
+          placeholder="请输入手机号，方便我们联系您"
+          placeholderClass={styles.textareaPlaceholder}
+          value={contact}
+          onInput={(e) => setContact(e.detail.value)}
+          maxlength={11}
+        />
+      </View>
+
+      <View style={{ height: '160rpx' }} />
     </ScrollView>
   );
 
@@ -192,21 +286,35 @@ const ReviewPage: React.FC = () => {
               <Text>👤</Text>
             </View>
             <View className={styles.reviewerInfo}>
-              <Text className={styles.reviewerName}>{review.userName}</Text>
+              <Text className={styles.reviewerName}>{review.userName}{review.isAnonymous ? '(匿名)' : ''}</Text>
               <Text className={styles.reviewRating}>
                 {'⭐'.repeat(review.rating)}
               </Text>
             </View>
           </View>
+          {review.tags && review.tags.length > 0 && (
+            <View className={styles.reviewTags}>
+              {review.tags.map(tag => (
+                <Text key={tag} className={styles.reviewTag}>{tag}</Text>
+              ))}
+            </View>
+          )}
           <Text className={styles.reviewContent}>{review.content}</Text>
+          {review.spotName && (
+            <Text className={styles.reviewSpot}>📍 {review.spotName}</Text>
+          )}
           <Text className={styles.reviewTime}>{review.createTime}</Text>
         </View>
       )) : (
-        <View style={{ textAlign: 'center', padding: '120rpx 0' }}>
-          <Text style={{ fontSize: '80rpx', opacity: 0.5 }}>📝</Text>
-          <Text style={{ fontSize: '28rpx', color: '#86909c', marginTop: '16rpx' }}>
-            暂无评价记录
-          </Text>
+        <View className={styles.emptyState}>
+          <Text className={styles.emptyIcon}>📝</Text>
+          <Text className={styles.emptyText}>暂无评价记录</Text>
+          <View
+            className={styles.emptyAction}
+            onClick={() => setActiveTab(0)}
+          >
+            <Text>去评价</Text>
+          </View>
         </View>
       )}
     </ScrollView>
@@ -243,8 +351,11 @@ const ReviewPage: React.FC = () => {
             </View>
             <Text>匿名评价</Text>
           </View>
-          <View className={styles.submitButton} onClick={handleSubmit}>
-            <Text>提交评价</Text>
+          <View
+            className={classnames(styles.submitButton, { [styles.submitDisabled]: submitting })}
+            onClick={!submitting ? handleSubmit : undefined}
+          >
+            <Text>{submitting ? '提交中...' : '提交评价'}</Text>
           </View>
         </View>
       )}

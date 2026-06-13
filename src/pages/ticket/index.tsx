@@ -61,8 +61,13 @@ const TicketPage: React.FC = () => {
   const handleBuyNow = (ticket: TicketType) => {
     console.log('[Ticket] 立即购票:', ticket.name);
     const qty = quantities[ticket.id] || 1;
+    const timeSlotId = selectedTimeSlot || ticket.timeSlots[0]?.id;
+    if (!timeSlotId) {
+      Taro.showToast({ title: '请选择时段', icon: 'none' });
+      return;
+    }
     Taro.navigateTo({
-      url: `/pages/booking/index?ticketId=${ticket.id}&quantity=${qty}&date=${dates[selectedDate].date}`
+      url: `/pages/booking/index?ticketId=${ticket.id}&quantity=${qty}&date=${dates[selectedDate].date}&timeSlotId=${timeSlotId}`
     }).catch(err => {
       console.error('[Ticket] 跳转预约页失败:', err);
     });

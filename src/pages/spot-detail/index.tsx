@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image } from '@tarojs/components';
 import Taro, { useRouter } from '@tarojs/taro';
 import classnames from 'classnames';
+import { useAppStore } from '@/store/app-store';
 import { getSpotById } from '@/data/spots';
 import { reviewList } from '@/data/service';
 import { Spot } from '@/types';
@@ -10,8 +11,11 @@ import styles from './index.module.scss';
 const SpotDetailPage: React.FC = () => {
   const router = useRouter();
   const [spot, setSpot] = useState<Spot | null>(null);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+
+  const spotId = router.params.id as string;
+  const isFavorite = useAppStore(state => state.isFavorite(spotId));
+  const toggleFavorite = useAppStore(state => state.toggleFavorite);
 
   useEffect(() => {
     const id = router.params.id as string;
@@ -20,14 +24,14 @@ const SpotDetailPage: React.FC = () => {
       const spotData = getSpotById(id);
       if (spotData) {
         setSpot(spotData);
-        setIsFavorite(spotData.isFavorite);
       }
     }
   }, [router.params.id]);
 
   const handleFavorite = () => {
+    if (!spotId) return;
     console.log('[SpotDetail] 切换收藏状态:', !isFavorite);
-    setIsFavorite(!isFavorite);
+    toggleFavorite(spotId);
     Taro.showToast({
       title: isFavorite ? '已取消收藏' : '已加入收藏',
       icon: 'success'

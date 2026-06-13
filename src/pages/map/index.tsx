@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import classnames from 'classnames';
 import { spotsData } from '@/data/spots';
 import { facilities } from '@/data/service';
-import { routeTypes } from '@/data/itinerary';
+import { routeTypes, routeSpotsMap } from '@/data/itinerary';
 import { getQueueLevelText, getQueueLevelColor } from '@/utils';
 import { Spot } from '@/types';
 import styles from './index.module.scss';
@@ -13,6 +13,7 @@ const MapPage: React.FC = () => {
   const [activeRoute, setActiveRoute] = useState('default');
   const [activeFacility, setActiveFacility] = useState('all');
   const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null);
+  const [isPlayingAudio, setIsPlayingAudio] = useState<string | null>(null);
 
   const facilityTypes = [
     { id: 'all', name: '全部', icon: '📍' },
@@ -22,13 +23,21 @@ const MapPage: React.FC = () => {
     { id: 'shop', name: '商店', icon: '🛍️' }
   ];
 
+  const currentRoute = useMemo(
+    () => routeSpotsMap.find(r => r.routeId === activeRoute) || routeSpotsMap[0],
+    [activeRoute]
+  );
+
+  const routeSpots = useMemo(() => {
+    return currentRoute.spotIds
+      .map(id => spotsData.find(s => s.id === id))
+      .filter((s): s is Spot => !!s);
+  }, [currentRoute]);
+
   const handleRouteChange = (routeId: string) => {
     console.log('[Map] 切换路线:', routeId);
     setActiveRoute(routeId);
-    Taro.showToast({
-      title: `已切换至${routeTypes.find(r => r.id === routeId)?.name}`,
-      icon: 'none'
-    });
+    setSelectedSpot(null);
   };
 
   const handleFacilityFilter = (type: string) => {
@@ -45,20 +54,24 @@ const MapPage: React.FC = () => {
     setSelectedSpot(null);
   };
 
-  const handleViewDetail = () => {
-    if (selectedSpot) {
-      console.log('[Map] 查看景点详情:', selectedSpot.name);
-      Taro.navigateTo({
-        url: `/pages/spot-detail/index?id=${selectedSpot.id}`
-      }).catch(err => {
-        console.error('[Map] 跳转详情失败:', err);
-      });
-    }
+  const handleViewDetail = (spot: Spot) => {
+    console.log('[Map] 查看景点详情:', spot.name);
+    Taro.navigateTo({
+      url: `/pages/spot-detail/index?id=${spot.id}`
+    }).catch(err => {
+      console.error('[Map] 跳转详情失败:', err);
+    });
   };
 
-  const handleAudioGuide = () => {
-    console.log('[Map] 播放语音讲解');
-    Taro.showToast({ title: '语音讲解播放中', icon: 'none' });
+  const handleAudioGuide = (spot: Spot) => {
+    console.log('[Map] 播放语音讲解:', spot.name);
+    if (isPlayingAudio === spot.id) {
+      setIsPlayingAudio(null);
+      Taro.showToast({ title: '已暂停', icon: 'none' });
+    } else {
+      setIsPlayingAudio(spot.id);
+      Taro.showToast({ title: '语音讲解播放中', icon: 'none' });
+    }
   };
 
   const handleLocate = () => {
@@ -92,18 +105,65 @@ const MapPage: React.FC = () => {
     ? facilities
     : facilities.filter(f => f.type === activeFacility);
 
+  const getRouteLinePath = () => {
+    if (routeSpots.length < 2) return '';
+    const points = routeSpots.map(spot => {
+      const x = spot.position.x / 8;
+      const y = spot.position.y / 7;
+      return `${x}% ${y}%`;
+    });
+    return `linear-gradient(135deg, ${currentRoute.color}, ${currentRoute.color}88)`;
+  };
+
   return (
     <View className={styles.mapPage}>
       <View className={styles.mapContainer}>
+        <View className={styles.routeHeader}>
+          <View className={styles.routeHeaderLeft}>
+            <Text className={styles.routeHeaderName}>{currentRoute.name}</Text>
+            <Text className={styles.routeHeaderDesc}>{currentRoute.description}</Text>
+          </View>
+          <View className={styles.routeHeaderStats}>
+            <View className={styles.routeStatItem}>
+              <Text className={styles.routeStatValue}>{routeSpots.length}</Text>
+              <Text className={styles.routeStatLabel}>景点</Text>
+            </View>
+            <View className={styles.routeStatItem}>
+              <Text className={styles.routeStatValue}>{currentRoute.estimatedTime}</Text>
+              <Text className={styles.routeStatLabel}>时长</Text>
+            </View>
+            <View className={styles.routeStatItem}>
+              <Text className={styles.routeStatValue}>{currentRoute.distance}</Text>
+              <Text className={styles.routeStatLabel}>距离</Text>
+            </View>
+          </View>
+        </View>
+
         <View className={styles.mapContent}>
-          {spotsData.map(spot => (
+          {routeSpots.length >= 2 && (
+            <View
+              className={styles.routeLineOverlay}
+              style={{
+                background: getRouteLinePath(),
+                opacity: 0.3
+              }}
+            />
+          )}
+
+          {routeSpots.map((spot, index) => (
             <View
               key={spot.id}
-              className={styles.spotMarker}
-              style={getSpotPositionStyle(spot)}
+              className={classnames(styles.spotMarker, {
+                [styles.selected]: selectedSpot?.id === spot.id
+              })}
+              style={{
+                ...getSpotPositionStyle(spot),
+                backgroundColor: currentRoute.color,
+                borderColor: currentRoute.color
+              }}
               onClick={() => handleSpotClick(spot)}
             >
-              <View className={styles.markerDot} />
+              <View className={styles.markerIndex}>{index + 1}</View>
               <View className={styles.markerLabel}>{spot.name}</View>
             </View>
           ))}
@@ -157,13 +217,13 @@ const MapPage: React.FC = () => {
             <View className={styles.popupActions}>
               <View
                 className={classnames(styles.popupBtn, styles.popupBtnSecondary)}
-                onClick={handleAudioGuide}
+                onClick={() => handleAudioGuide(selectedSpot)}
               >
-                <Text>🎧 语音讲解</Text>
+                <Text>{isPlayingAudio === selectedSpot.id ? '⏸ 暂停讲解' : '🎧 语音讲解'}</Text>
               </View>
               <View
                 className={classnames(styles.popupBtn, styles.popupBtnPrimary)}
-                onClick={handleViewDetail}
+                onClick={() => handleViewDetail(selectedSpot)}
               >
                 <Text>查看详情</Text>
               </View>
@@ -179,12 +239,18 @@ const MapPage: React.FC = () => {
                 className={classnames(styles.routeTab, {
                   [styles.active]: activeRoute === route.id
                 })}
+                style={activeRoute === route.id ? {
+                  backgroundColor: (routeSpotsMap.find(r => r.routeId === route.id)?.color || '#2563eb') + '15',
+                  color: routeSpotsMap.find(r => r.routeId === route.id)?.color || '#2563eb',
+                  borderColor: routeSpotsMap.find(r => r.routeId === route.id)?.color || '#2563eb'
+                } : {}}
                 onClick={() => handleRouteChange(route.id)}
               >
                 <Text>{route.name}</Text>
               </View>
             ))}
           </View>
+
           <View className={styles.facilityFilter}>
             {facilityTypes.map(item => (
               <View
@@ -198,6 +264,56 @@ const MapPage: React.FC = () => {
                 <Text className={styles.facilityName}>{item.name}</Text>
               </View>
             ))}
+          </View>
+
+          <View className={styles.routeSpotsList}>
+            <Text className={styles.routeSpotsTitle}>
+              路线景点（{routeSpots.length}个）
+            </Text>
+            <View className={styles.routeSpotsScroll}>
+              {routeSpots.map((spot, index) => (
+                <View
+                  key={spot.id}
+                  className={classnames(styles.routeSpotItem, {
+                    [styles.selected]: selectedSpot?.id === spot.id
+                  })}
+                  onClick={() => handleSpotClick(spot)}
+                >
+                  <View
+                    className={styles.routeSpotIndex}
+                    style={{ backgroundColor: currentRoute.color }}
+                  >
+                    <Text>{index + 1}</Text>
+                  </View>
+                  <View className={styles.routeSpotInfo}>
+                    <Text className={styles.routeSpotName}>{spot.name}</Text>
+                    <Text className={styles.routeSpotDesc}>
+                      ⭐{spot.rating} · {spot.duration}
+                    </Text>
+                  </View>
+                  <View className={styles.routeSpotActions}>
+                    <View
+                      className={styles.routeSpotAction}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAudioGuide(spot);
+                      }}
+                    >
+                      <Text>{isPlayingAudio === spot.id ? '⏸' : '🎧'}</Text>
+                    </View>
+                    <View
+                      className={styles.routeSpotAction}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleViewDetail(spot);
+                      }}
+                    >
+                      <Text>›</Text>
+                    </View>
+                  </View>
+                </View>
+              ))}
+            </View>
           </View>
         </View>
       </View>

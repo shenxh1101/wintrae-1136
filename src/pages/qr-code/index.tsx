@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text } from '@tarojs/components';
 import Taro, { useRouter } from '@tarojs/taro';
-import { ticketOrders } from '@/data/tickets';
+import { useAppStore } from '@/store/app-store';
 import { TicketOrder } from '@/types';
 import styles from './index.module.scss';
 
@@ -9,16 +9,28 @@ const QrCodePage: React.FC = () => {
   const router = useRouter();
   const [order, setOrder] = useState<TicketOrder | null>(null);
 
+  const ticketOrders = useAppStore(state => state.ticketOrders);
+  const currentOrder = useAppStore(state => state.currentOrder);
+
   useEffect(() => {
     const orderId = router.params.orderId as string;
-    console.log('[QRCode] 订单ID:', orderId);
-    const foundOrder = ticketOrders.find(o => o.id === orderId);
-    if (foundOrder) {
-      setOrder(foundOrder);
-    } else {
-      setOrder(ticketOrders.find(o => o.status === 'paid') || ticketOrders[0]);
+    console.log('[QRCode] 订单ID:', orderId, 'Store订单数:', ticketOrders.length);
+
+    let foundOrder: TicketOrder | null = null;
+    if (orderId) {
+      foundOrder = ticketOrders.find(o => o.id === orderId) || null;
     }
-  }, [router.params]);
+    if (!foundOrder && currentOrder) {
+      foundOrder = currentOrder;
+    }
+    if (!foundOrder && ticketOrders.length > 0) {
+      foundOrder = ticketOrders[ticketOrders.length - 1];
+    }
+    if (foundOrder) {
+      console.log('[QRCode] 匹配到订单:', foundOrder);
+      setOrder(foundOrder);
+    }
+  }, [router.params, ticketOrders, currentOrder]);
 
   const handleSaveQr = () => {
     console.log('[QRCode] 保存二维码');
@@ -27,7 +39,21 @@ const QrCodePage: React.FC = () => {
 
   const handleViewOrder = () => {
     console.log('[QRCode] 查看订单详情');
-    Taro.showToast({ title: '订单详情功能开发中', icon: 'none' });
+    if (!order) return;
+    Taro.showModal({
+      title: '订单详情',
+      content: `景点：${order.spotName}
+票种：${order.ticketName}
+日期：${order.date}
+时段：${order.timeSlot}
+数量：${order.quantity}张
+金额：¥${order.totalPrice}
+姓名：${order.contactName}
+手机：${order.contactPhone}
+下单时间：${order.createTime}`,
+      showCancel: false,
+      confirmText: '知道了'
+    });
   };
 
   if (!order) {
@@ -57,7 +83,7 @@ const QrCodePage: React.FC = () => {
           </View>
         </View>
 
-        <Text className={styles.qrCodeText}>{order.qrCode}</Text>
+        <Text className={styles.qrCodeText}>{order.qrCode || order.id}</Text>
       </View>
 
       <View className={styles.infoSection}>
@@ -71,7 +97,7 @@ const QrCodePage: React.FC = () => {
         </View>
         <View className={styles.infoItem}>
           <Text className={styles.infoLabel}>订单编号</Text>
-          <Text className={styles.infoValue}>{order.id}</Text>
+          <Text className={styles.infoValue}>{order.orderNo || order.id}</Text>
         </View>
         <View className={styles.infoItem}>
           <Text className={styles.infoLabel}>购票数量</Text>
@@ -81,6 +107,12 @@ const QrCodePage: React.FC = () => {
           <Text className={styles.infoLabel}>订单金额</Text>
           <Text className={styles.infoValue}>¥{order.totalPrice}</Text>
         </View>
+        {order.contactName && (
+          <View className={styles.infoItem}>
+            <Text className={styles.infoLabel}>联系人</Text>
+            <Text className={styles.infoValue}>{order.contactName}</Text>
+          </View>
+        )}
       </View>
 
       <View className={styles.tipSection}>

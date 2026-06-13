@@ -17,6 +17,7 @@ export const ticketTypes: TicketType[] = [
     description: '适用于18-60岁成人，包含景区大门票',
     remaining: 256,
     total: 500,
+    image: 'https://picsum.photos/id/1018/800/400',
     timeSlots: timeSlots
   },
   {
@@ -27,6 +28,7 @@ export const ticketTypes: TicketType[] = [
     description: '适用于1.2-1.5米儿童，包含景区大门票',
     remaining: 180,
     total: 300,
+    image: 'https://picsum.photos/id/1003/800/400',
     timeSlots: timeSlots
   },
   {
@@ -37,6 +39,7 @@ export const ticketTypes: TicketType[] = [
     description: '适用于60岁以上老人，凭有效证件入园',
     remaining: 120,
     total: 200,
+    image: 'https://picsum.photos/id/1035/800/400',
     timeSlots: timeSlots
   },
   {
@@ -47,6 +50,7 @@ export const ticketTypes: TicketType[] = [
     description: '含1大1小门票，赠送儿童纪念品',
     remaining: 68,
     total: 100,
+    image: 'https://picsum.photos/id/1011/800/400',
     timeSlots: timeSlots
   },
   {
@@ -57,6 +61,7 @@ export const ticketTypes: TicketType[] = [
     description: '含门票+观光车+专业讲解+优先通道',
     remaining: 32,
     total: 50,
+    image: 'https://picsum.photos/id/1039/800/400',
     timeSlots: timeSlots
   }
 ];

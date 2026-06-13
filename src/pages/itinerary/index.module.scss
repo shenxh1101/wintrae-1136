@@ -202,6 +202,20 @@
   color: $color-text-tertiary;
 }
 
+.emptyAction {
+  margin-top: $spacing-lg;
+  padding: $spacing-sm $spacing-xl;
+  border-radius: $radius-button;
+  background-color: rgba(37, 99, 235, 0.1);
+  color: $color-primary;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
 .timeline {
   position: relative;
   padding-left: 40rpx;
@@ -243,6 +257,35 @@
   border-radius: $radius-md;
   padding: $spacing-md;
   box-shadow: $shadow-card;
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.timelineImage {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: $radius-sm;
+  flex-shrink: 0;
+}
+
+.timelineText {
+  flex: 1;
+  min-width: 0;
+}
+
+.timelineRemove {
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $radius-xs;
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  flex-shrink: 0;
+
+  &:active {
+    opacity: 0.8;
+  }
 }
 
 .timelineTime {

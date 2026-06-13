@@ -83,6 +83,7 @@ export const getFacilityTypeText = (type: string): string => {
   return map[type] || type;
 };
 
-export const generateRandomId = (): string => {
-  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+export const generateRandomId = (prefix?: string): string => {
+  const random = Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 6);
+  return prefix ? `${prefix}${Date.now().toString().slice(-6)}${random}` : random;
 };

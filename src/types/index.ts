@@ -28,6 +28,7 @@ export interface TicketType {
   description: string;
   remaining: number;
   total: number;
+  image?: string;
   timeSlots: TimeSlot[];
 }
 
@@ -40,13 +41,21 @@ export interface TimeSlot {
 
 export interface TicketOrder {
   id: string;
+  orderNo?: string;
+  spotId?: string;
   spotName: string;
+  ticketId?: string;
   ticketName: string;
   date: string;
   timeSlot: string;
+  timeSlotId?: string;
   quantity: number;
+  price?: number;
   totalPrice: number;
-  status: 'pending' | 'paid' | 'used' | 'cancelled';
+  contactName?: string;
+  contactPhone?: string;
+  contactIdCard?: string;
+  status: 'pending' | 'paid' | 'used' | 'cancelled' | 'refund';
   qrCode?: string;
   createTime: string;
 }
@@ -95,6 +104,8 @@ export interface ServiceHelpItem {
   type: 'lost' | 'consult' | 'emergency';
   title: string;
   description: string;
+  contact?: string;
+  email?: string;
   status: 'pending' | 'processing' | 'resolved';
   createTime: string;
 }
@@ -104,16 +115,29 @@ export interface Review {
   spotId: string;
   spotName: string;
   rating: number;
+  subRatings?: {
+    environment: number;
+    service: number;
+    value: number;
+  };
   content: string;
   images: string[];
+  tags?: string[];
+  contact?: string;
+  isAnonymous?: boolean;
+  userAvatar?: string;
   createTime: string;
   userName: string;
 }
 
 export interface Invoice {
   id: string;
-  orderId: string;
+  orderId?: string;
+  orderIds?: string[];
   title: string;
+  taxNumber?: string;
+  email?: string;
+  contact?: string;
   amount: number;
   status: 'pending' | 'issued';
   createTime: string;
