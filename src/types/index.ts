@@ -76,6 +76,37 @@ export interface RefundRecord {
   remark?: string;
 }
 
+export interface TourSpotRecord {
+  spotId: string;
+  spotName: string;
+  arriveTime: string;
+  leaveTime?: string;
+  dwellMs?: number;
+}
+
+export interface TourHistory {
+  id: string;
+  routeId: string;
+  routeName: string;
+  startTime: string;
+  endTime: string;
+  totalMs: number;
+  spots: TourSpotRecord[];
+  completedCount: number;
+  totalCount: number;
+}
+
+export interface MessageItem {
+  id: string;
+  type: 'refund' | 'invoice' | 'review' | 'tour';
+  title: string;
+  desc: string;
+  time: string;
+  read: boolean;
+  targetId: string;
+  targetPath: string;
+}
+
 export interface ItineraryItem {
   id: string;
   spotId: string;

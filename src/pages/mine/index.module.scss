@@ -331,3 +331,216 @@
   justify-content: center;
   padding: 0 8rpx;
 }
+
+.headerActions {
+  position: absolute;
+  top: 60rpx;
+  right: $page-padding;
+  display: flex;
+  gap: $spacing-md;
+}
+
+.messageEntry {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.messageEntryIcon {
+  font-size: 36rpx;
+}
+
+.messageEntryBadge {
+  position: absolute;
+  top: -4rpx;
+  right: -4rpx;
+  min-width: 32rpx;
+  height: 32rpx;
+  border-radius: 16rpx;
+  background-color: $color-error;
+  color: $color-text-white;
+  font-size: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8rpx;
+}
+
+.tourHistorySection {
+  background-color: $color-bg-card;
+  margin: 0 $page-padding $spacing-md;
+  border-radius: $radius-lg;
+  padding: $spacing-lg;
+  box-shadow: $shadow-card;
+}
+
+.tourHistoryHeader {
+  margin-bottom: $spacing-md;
+}
+
+.tourHistoryTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.tourHistoryScroll {
+  white-space: nowrap;
+}
+
+.tourHistoryCard {
+  display: inline-flex;
+  flex-direction: column;
+  width: 320rpx;
+  padding: $spacing-md;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(37, 99, 235, 0.05));
+  border-radius: $radius-md;
+  margin-right: $spacing-md;
+  vertical-align: top;
+}
+
+.tourHistoryRoute {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+  margin-bottom: 4rpx;
+  white-space: normal;
+}
+
+.tourHistoryMeta {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  margin-bottom: $spacing-sm;
+  white-space: normal;
+}
+
+.tourHistorySpots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.tourHistorySpotTag {
+  font-size: $font-size-xs;
+  padding: 2rpx 12rpx;
+  border-radius: $radius-button;
+  background-color: rgba(37, 99, 235, 0.1);
+  color: $color-primary;
+  white-space: normal;
+}
+
+.messagePopup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 250;
+  display: flex;
+  align-items: flex-end;
+}
+
+.messageContent {
+  width: 100%;
+  max-height: 80vh;
+  background-color: $color-bg-card;
+  border-radius: $radius-lg $radius-lg 0 0;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.messageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-lg $page-padding;
+  border-bottom: 1rpx solid $color-divider;
+}
+
+.messageTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+}
+
+.markAllRead {
+  font-size: $font-size-sm;
+  color: $color-primary;
+}
+
+.messageScroll {
+  flex: 1;
+  padding: 0 $page-padding;
+  max-height: 65vh;
+}
+
+.messageItem {
+  display: flex;
+  align-items: flex-start;
+  padding: $spacing-md 0;
+  border-bottom: 1rpx solid $color-divider;
+
+  &.unread {
+    background-color: rgba(37, 99, 235, 0.03);
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.messageItemIcon {
+  font-size: 40rpx;
+  margin-right: $spacing-md;
+  flex-shrink: 0;
+}
+
+.messageItemInfo {
+  flex: 1;
+}
+
+.messageItemTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+.messageItemDesc {
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+.messageItemTime {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+}
+
+.messageUnreadDot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background-color: $color-primary;
+  margin-top: 8rpx;
+  flex-shrink: 0;
+}
+
+.messageEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 0;
+  color: $color-text-tertiary;
+  font-size: $font-size-sm;
+}
+

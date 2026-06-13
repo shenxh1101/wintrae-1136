@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { TicketOrder, ServiceHelpItem, Review, Invoice, RefundRecord } from '@/types';
+import { TicketOrder, ServiceHelpItem, Review, Invoice, RefundRecord, TourHistory, TourSpotRecord, MessageItem } from '@/types';
 import { spotsData } from '@/data/spots';
 
 interface AppState {
@@ -10,8 +10,10 @@ interface AppState {
   reviewList: Review[];
   invoiceList: Invoice[];
   refundList: RefundRecord[];
+  tourHistoryList: TourHistory[];
+  messageList: MessageItem[];
   currentOrder: TicketOrder | null;
-  activeRouteTour: { routeId: string; currentSpotIndex: number; startTime: string } | null;
+  activeRouteTour: { routeId: string; currentSpotIndex: number; startTime: string; spots: TourSpotRecord[] } | null;
 
   toggleFavorite: (spotId: string) => void;
   isFavorite: (spotId: string) => boolean;
@@ -33,7 +35,12 @@ interface AppState {
   createRefund: (refund: Omit<RefundRecord, 'id' | 'createTime' | 'status'>) => void;
   updateRefund: (refundId: string, updates: Partial<RefundRecord>) => void;
 
-  setActiveRouteTour: (tour: { routeId: string; currentSpotIndex: number; startTime: string } | null) => void;
+  addTourHistory: (history: TourHistory) => void;
+  addMessage: (msg: Omit<MessageItem, 'id' | 'time' | 'read'>) => void;
+  markMessageRead: (msgId: string) => void;
+  markAllMessagesRead: () => void;
+
+  setActiveRouteTour: (tour: { routeId: string; currentSpotIndex: number; startTime: string; spots: TourSpotRecord[] } | null) => void;
   advanceRouteTour: () => void;
 }
 
@@ -186,6 +193,29 @@ export const useAppStore = create<AppState>()(
       reviewList: historyReviews,
       invoiceList: historyInvoices,
       refundList: historyRefunds,
+      tourHistoryList: [],
+      messageList: [
+        {
+          id: 'msg-001',
+          type: 'refund',
+          title: '退款已到账',
+          desc: '订单TK202505200004退款¥160已原路退回',
+          time: new Date(now.getTime() - 18 * 24 * 3600 * 1000).toISOString(),
+          read: true,
+          targetId: 'hist-004',
+          targetPath: '/pages/order-list/index?status=refund'
+        },
+        {
+          id: 'msg-002',
+          type: 'invoice',
+          title: '发票已开具',
+          desc: '您申请的电子发票已发送至zhang@example.com',
+          time: new Date(now.getTime() - 6 * 24 * 3600 * 1000).toISOString(),
+          read: true,
+          targetId: 'inv-001',
+          targetPath: '/pages/invoice/index'
+        }
+      ],
       currentOrder: null,
       activeRouteTour: null,
 
@@ -280,13 +310,24 @@ export const useAppStore = create<AppState>()(
           createTime: new Date().toISOString(),
           status: 'pending'
         };
+        const msgId = 'msg-' + Date.now();
         set(state => ({
           refundList: [newRefund, ...state.refundList],
           ticketOrders: state.ticketOrders.map(order =>
             order.id === refund.orderId
               ? { ...order, status: 'refund', refundId: newRefund.id, invoiceStatus: order.invoiceStatus === 'issued' ? 'pending' : order.invoiceStatus }
               : order
-          )
+          ),
+          messageList: [{
+            id: msgId,
+            type: 'refund',
+            title: '退款申请已提交',
+            desc: `订单${refund.orderNo || refund.orderId}退款¥${refund.amount}申请已提交`,
+            time: new Date().toISOString(),
+            read: false,
+            targetId: newRefund.id,
+            targetPath: `/pages/order-list/index?status=refund`
+          }, ...state.messageList]
         }));
       },
 
@@ -295,6 +336,38 @@ export const useAppStore = create<AppState>()(
           refundList: state.refundList.map(r =>
             r.id === refundId ? { ...r, ...updates } : r
           )
+        }));
+      },
+
+      addTourHistory: (history: TourHistory) => {
+        set(state => ({
+          tourHistoryList: [history, ...state.tourHistoryList]
+        }));
+      },
+
+      addMessage: (msg) => {
+        const newMsg: MessageItem = {
+          ...msg,
+          id: 'msg-' + Date.now(),
+          time: new Date().toISOString(),
+          read: false
+        };
+        set(state => ({
+          messageList: [newMsg, ...state.messageList]
+        }));
+      },
+
+      markMessageRead: (msgId: string) => {
+        set(state => ({
+          messageList: state.messageList.map(m =>
+            m.id === msgId ? { ...m, read: true } : m
+          )
+        }));
+      },
+
+      markAllMessagesRead: () => {
+        set(state => ({
+          messageList: state.messageList.map(m => ({ ...m, read: true }))
         }));
       },
 
@@ -318,6 +391,8 @@ export const useAppStore = create<AppState>()(
         reviewList: state.reviewList,
         invoiceList: state.invoiceList,
         refundList: state.refundList,
+        tourHistoryList: state.tourHistoryList,
+        messageList: state.messageList,
         activeRouteTour: state.activeRouteTour
       })
     }

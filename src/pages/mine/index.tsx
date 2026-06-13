@@ -1,19 +1,36 @@
-import React, { useMemo } from 'react';
-import { View, Text } from '@tarojs/components';
+import React, { useMemo, useState } from 'react';
+import { View, Text, ScrollView } from '@tarojs/components';
 import Taro from '@tarojs/taro';
 import classnames from 'classnames';
 import { useAppStore } from '@/store/app-store';
 import styles from './index.module.scss';
 
+const MSG_TYPE_ICON: Record<string, string> = {
+  refund: '↩️',
+  invoice: '🧾',
+  review: '⭐',
+  tour: '🗺️'
+};
+
 const MinePage: React.FC = () => {
+  const [showMessages, setShowMessages] = useState(false);
+
   const favoriteSpotIds = useAppStore(state => state.favoriteSpotIds);
   const reviewList = useAppStore(state => state.reviewList);
   const ticketOrders = useAppStore(state => state.ticketOrders);
   const invoiceList = useAppStore(state => state.invoiceList);
+  const messageList = useAppStore(state => state.messageList);
+  const markMessageRead = useAppStore(state => state.markMessageRead);
+  const markAllMessagesRead = useAppStore(state => state.markAllMessagesRead);
+  const tourHistoryList = useAppStore(state => state.tourHistoryList);
 
   const pendingReviewCount = useMemo(() => {
     return ticketOrders.filter(o => o.status === 'used' && !o.hasReview).length;
   }, [ticketOrders]);
+
+  const unreadCount = useMemo(() => {
+    return messageList.filter(m => !m.read).length;
+  }, [messageList]);
 
   const orderTypes = useMemo(() => {
     return [
@@ -24,13 +41,13 @@ const MinePage: React.FC = () => {
     ];
   }, [ticketOrders]);
 
-  const menuItems = [
+  const menuItems = useMemo(() => [
     { id: 'favorites', name: '我的收藏', icon: '❤️', path: '/pages/itinerary/index?tab=1', count: favoriteSpotIds.length },
-    { id: 'footprint', name: '浏览足迹', icon: '👣', path: '' },
+    { id: 'tourHistory', name: '游览记录', icon: '�️', path: '', count: tourHistoryList.length },
     { id: 'coupon', name: '优惠券', icon: '🎟️', path: '' },
     { id: 'invoice', name: '电子发票', icon: '🧾', path: '/pages/invoice/index', count: invoiceList.length },
     { id: 'settings', name: '设置', icon: '⚙️', path: '' }
-  ];
+  ], [favoriteSpotIds.length, tourHistoryList.length, invoiceList.length]);
 
   const serviceItems = [
     { id: 'help', name: '服务求助', icon: '💁', color: '#f87171', path: '/pages/service-help/index' },
@@ -40,49 +57,65 @@ const MinePage: React.FC = () => {
   ];
 
   const handleOrderClick = (type: string) => {
-    console.log('[Mine] 查看订单:', type);
     Taro.navigateTo({
       url: `/pages/order-list/index?status=${type}`
-    }).catch(err => {
-      console.error('[Mine] 跳转订单列表失败:', err);
-    });
+    }).catch(err => console.error('[Mine] 跳转订单列表失败:', err));
   };
 
   const handleMenuClick = (item: typeof menuItems[0]) => {
-    console.log('[Mine] 点击菜单:', item.name);
     if (item.id === 'favorites') {
-      Taro.switchTab({ url: '/pages/itinerary/index' }).catch(err => {
-        console.error('[Mine] 跳转失败:', err);
-      });
+      Taro.switchTab({ url: '/pages/itinerary/index' }).catch(() => {});
+    } else if (item.id === 'tourHistory') {
+      Taro.navigateTo({ url: '/pages/map/index' }).catch(() => {});
     } else if (item.path) {
-      Taro.navigateTo({ url: item.path }).catch(err => {
-        console.error('[Mine] 跳转失败:', err);
-      });
+      Taro.navigateTo({ url: item.path }).catch(() => {});
     } else {
       Taro.showToast({ title: `${item.name}功能开发中`, icon: 'none' });
     }
   };
 
   const handleServiceClick = (item: typeof serviceItems[0]) => {
-    console.log('[Mine] 点击服务:', item.name);
     if (item.path) {
-      Taro.navigateTo({ url: item.path }).catch(err => {
-        console.error('[Mine] 跳转失败:', err);
-      });
+      Taro.navigateTo({ url: item.path }).catch(() => {});
     } else {
       Taro.showToast({ title: `${item.name}功能开发中`, icon: 'none' });
     }
   };
 
   const handleEditProfile = () => {
-    console.log('[Mine] 编辑个人信息');
     Taro.showToast({ title: '编辑资料功能开发中', icon: 'none' });
   };
 
   const handleGoReviewReminder = () => {
-    Taro.navigateTo({ url: '/pages/order-list/index?status=used' }).catch(err => {
-      console.error('[Mine] 跳转失败:', err);
-    });
+    Taro.navigateTo({ url: '/pages/order-list/index?status=used' }).catch(() => {});
+  };
+
+  const handleMessageClick = (msg: typeof messageList[0]) => {
+    if (!msg.read) markMessageRead(msg.id);
+    setShowMessages(false);
+    setTimeout(() => {
+      Taro.navigateTo({ url: msg.targetPath }).catch(() => {});
+    }, 200);
+  };
+
+  const handleMarkAllRead = () => {
+    markAllMessagesRead();
+  };
+
+  const formatTimeAgo = (time: string) => {
+    const diff = Date.now() - new Date(time).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `${mins}分钟前`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}小时前`;
+    const days = Math.floor(hours / 24);
+    return `${days}天前`;
+  };
+
+  const formatTourDuration = (ms: number) => {
+    const h = Math.floor(ms / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    return h > 0 ? `${h}小时${m}分钟` : `${m}分钟`;
   };
 
   return (
@@ -95,6 +128,20 @@ const MinePage: React.FC = () => {
           <View className={styles.userText}>
             <Text className={styles.nickname}>游客用户</Text>
             <Text className={styles.phone}>点击登录 / 注册</Text>
+          </View>
+        </View>
+
+        <View className={styles.headerActions}>
+          <View
+            className={styles.messageEntry}
+            onClick={() => setShowMessages(true)}
+          >
+            <Text className={styles.messageEntryIcon}>🔔</Text>
+            {unreadCount > 0 && (
+              <View className={styles.messageEntryBadge}>
+                <Text>{unreadCount > 99 ? '99+' : unreadCount}</Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -158,6 +205,34 @@ const MinePage: React.FC = () => {
         </View>
       </View>
 
+      {tourHistoryList.length > 0 && (
+        <View className={styles.tourHistorySection}>
+          <View className={styles.tourHistoryHeader}>
+            <Text className={styles.tourHistoryTitle}>最近游览</Text>
+          </View>
+          <ScrollView scrollX className={styles.tourHistoryScroll}>
+            {tourHistoryList.slice(0, 3).map(tour => (
+              <View key={tour.id} className={styles.tourHistoryCard}>
+                <Text className={styles.tourHistoryRoute}>{tour.routeName}</Text>
+                <Text className={styles.tourHistoryMeta}>
+                  {formatTourDuration(tour.totalMs)} · {tour.completedCount}/{tour.totalCount}景点
+                </Text>
+                <View className={styles.tourHistorySpots}>
+                  {tour.spots.filter(s => s.leaveTime).slice(0, 3).map(spot => (
+                    <Text key={spot.spotId} className={styles.tourHistorySpotTag}>
+                      {spot.spotName}
+                    </Text>
+                  ))}
+                  {tour.spots.filter(s => s.leaveTime).length > 3 && (
+                    <Text className={styles.tourHistorySpotTag}>+{tour.spots.filter(s => s.leaveTime).length - 3}</Text>
+                  )}
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+
       <View className={styles.menuSection}>
         {menuItems.map(item => (
           <View
@@ -202,6 +277,40 @@ const MinePage: React.FC = () => {
           ))}
         </View>
       </View>
+
+      {showMessages && (
+        <View className={styles.messagePopup} onClick={() => setShowMessages(false)}>
+          <View className={styles.messageContent} onClick={(e) => e.stopPropagation()}>
+            <View className={styles.messageHeader}>
+              <Text className={styles.messageTitle}>消息中心</Text>
+              {unreadCount > 0 && (
+                <Text className={styles.markAllRead} onClick={handleMarkAllRead}>全部已读</Text>
+              )}
+            </View>
+            <ScrollView scrollY className={styles.messageScroll}>
+              {messageList.length > 0 ? messageList.map(msg => (
+                <View
+                  key={msg.id}
+                  className={classnames(styles.messageItem, { [styles.unread]: !msg.read })}
+                  onClick={() => handleMessageClick(msg)}
+                >
+                  <Text className={styles.messageItemIcon}>{MSG_TYPE_ICON[msg.type] || '📢'}</Text>
+                  <View className={styles.messageItemInfo}>
+                    <Text className={styles.messageItemTitle}>{msg.title}</Text>
+                    <Text className={styles.messageItemDesc}>{msg.desc}</Text>
+                    <Text className={styles.messageItemTime}>{formatTimeAgo(msg.time)}</Text>
+                  </View>
+                  {!msg.read && <View className={styles.messageUnreadDot} />}
+                </View>
+              )) : (
+                <View className={styles.messageEmpty}>
+                  <Text>暂无消息</Text>
+                </View>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      )}
     </View>
   );
 };

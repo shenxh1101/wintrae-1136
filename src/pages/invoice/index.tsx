@@ -8,7 +8,7 @@ import { formatTime, generateRandomId } from '@/utils';
 import styles from './index.module.scss';
 
 const InvoicePage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState(1);
   const [invoiceType, setInvoiceType] = useState<'personal' | 'company'>('personal');
   const [title, setTitle] = useState('');
   const [taxNumber, setTaxNumber] = useState('');
@@ -16,12 +16,15 @@ const InvoicePage: React.FC = () => {
   const [contact, setContact] = useState('');
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [editEmailInvoice, setEditEmailInvoice] = useState<Invoice | null>(null);
+  const [newEmail, setNewEmail] = useState('');
 
   const invoiceList = useAppStore(state => state.invoiceList);
   const addInvoice = useAppStore(state => state.addInvoice);
   const updateInvoice = useAppStore(state => state.updateInvoice);
   const ticketOrders = useAppStore(state => state.ticketOrders);
   const updateTicketOrder = useAppStore(state => state.updateTicketOrder);
+  const addMessage = useAppStore(state => state.addMessage);
 
   const tabs = ['申请开票', '开票记录'];
 
@@ -29,6 +32,8 @@ const InvoicePage: React.FC = () => {
     () => ticketOrders.filter(o => (o.status === 'paid' || o.status === 'used') && o.invoiceStatus !== 'issued'),
     [ticketOrders]
   );
+
+  const getOrderById = (orderId: string) => ticketOrders.find(o => o.id === orderId);
 
   const handleTabChange = (index: number) => {
     setActiveTab(index);
@@ -135,27 +140,22 @@ const InvoicePage: React.FC = () => {
     }, 600);
   };
 
-  const handleViewDetail = (invoice: Invoice) => {
-    const orderCount = invoice.orderIds ? invoice.orderIds.length : 1;
-    const relatedOrders = invoice.orderIds
-      ? ticketOrders.filter(o => invoice.orderIds!.includes(o.id))
-      : [];
-    const orderInfo = relatedOrders.length > 0
-      ? relatedOrders.map(o => `${o.ticketName} ¥${o.totalPrice}`).join('\n')
-      : `${orderCount}个订单`;
+  const handleOpenChangeEmail = (invoice: Invoice) => {
+    setEditEmailInvoice(invoice);
+    setNewEmail(invoice.email || '');
+  };
 
-    Taro.showModal({
-      title: invoice.title,
-      content: `类型：${invoice.type === 'personal' ? '个人' : '企业'}
-${invoice.taxNumber ? `税号：${invoice.taxNumber}\n` : ''}金额：¥${invoice.amount}
-邮箱：${invoice.email}
-${invoice.contact ? `联系电话：${invoice.contact}\n` : ''}关联订单：
-${orderInfo}
-申请时间：${invoice.createTime}
-状态：${invoice.status === 'issued' ? '已开具' : '开具中'}`,
-      showCancel: false,
-      confirmText: '知道了'
-    });
+  const handleSaveNewEmail = () => {
+    if (!editEmailInvoice) return;
+    const emailReg = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!newEmail.trim() || !emailReg.test(newEmail.trim())) {
+      Taro.showToast({ title: '请输入正确的邮箱', icon: 'none' });
+      return;
+    }
+    updateInvoice(editEmailInvoice.id, { email: newEmail.trim() });
+    setEditEmailInvoice(null);
+    setNewEmail('');
+    Taro.showToast({ title: '邮箱已更新', icon: 'success' });
   };
 
   const handleSimulateIssued = (invoiceId: string) => {
@@ -164,6 +164,13 @@ ${orderInfo}
     if (invoice && invoice.orderIds) {
       invoice.orderIds.forEach(orderId => {
         updateTicketOrder(orderId, { invoiceStatus: 'issued' });
+      });
+      addMessage({
+        type: 'invoice',
+        title: '发票已开具',
+        desc: `您申请的电子发票¥${invoice.amount}已发送至${invoice.email}`,
+        targetId: invoiceId,
+        targetPath: '/pages/invoice/index'
       });
     }
     Taro.showToast({ title: '发票已开具', icon: 'success' });
@@ -305,67 +312,83 @@ ${orderInfo}
   const renderInvoiceList = () => (
     <ScrollView scrollY>
       <View className={styles.invoiceList}>
-        {invoiceList.length > 0 ? invoiceList.map(invoice => (
-          <View key={invoice.id} className={styles.invoiceItem}>
-            <View className={styles.invoiceHeader}>
-              <Text className={styles.invoiceTitle}>{invoice.title}</Text>
-              <View
-                className={classnames(
-                  styles.invoiceStatus,
-                  invoice.status === 'issued' ? styles.statusIssued : styles.statusPending
+        {invoiceList.length > 0 ? invoiceList.map(invoice => {
+          const relatedOrders = (invoice.orderIds || [])
+            .map(id => getOrderById(id))
+            .filter(Boolean);
+
+          return (
+            <View key={invoice.id} className={styles.invoiceItem}>
+              <View className={styles.invoiceHeader}>
+                <Text className={styles.invoiceTitle}>{invoice.title}</Text>
+                <View
+                  className={classnames(
+                    styles.invoiceStatus,
+                    invoice.status === 'issued' ? styles.statusIssued : styles.statusPending
+                  )}
+                >
+                  <Text>{invoice.status === 'issued' ? '已开具' : '开具中'}</Text>
+                </View>
+              </View>
+              <View className={styles.invoiceInfo}>
+                <View className={styles.invoiceInfoItem}>
+                  <Text className={styles.invoiceInfoLabel}>发票类型</Text>
+                  <Text>{invoice.type === 'personal' ? '个人' : '企业'}</Text>
+                </View>
+                <View className={styles.invoiceInfoItem}>
+                  <Text className={styles.invoiceInfoLabel}>发票金额</Text>
+                  <Text style={{ color: '#ef4444', fontWeight: 500 }}>¥{invoice.amount}</Text>
+                </View>
+                <View className={styles.invoiceInfoItem}>
+                  <Text className={styles.invoiceInfoLabel}>接收邮箱</Text>
+                  <Text>{invoice.email}</Text>
+                </View>
+                {relatedOrders.length > 0 && (
+                  <View className={styles.invoiceInfoItem}>
+                    <Text className={styles.invoiceInfoLabel}>关联订单</Text>
+                    <View className={styles.invoiceOrders}>
+                      {relatedOrders.map((order, idx) => (
+                        <Text key={idx} className={styles.invoiceOrderTag}>
+                          {order!.spotName} ¥{order!.totalPrice}
+                        </Text>
+                      ))}
+                    </View>
+                  </View>
                 )}
-              >
-                <Text>{invoice.status === 'issued' ? '已开具' : '开具中'}</Text>
-              </View>
-            </View>
-            <View className={styles.invoiceInfo}>
-              <View className={styles.invoiceInfoItem}>
-                <Text className={styles.invoiceInfoLabel}>发票类型</Text>
-                <Text>{invoice.type === 'personal' ? '个人' : '企业'}</Text>
-              </View>
-              <View className={styles.invoiceInfoItem}>
-                <Text className={styles.invoiceInfoLabel}>发票金额</Text>
-                <Text style={{ color: '#ef4444', fontWeight: 500 }}>¥{invoice.amount}</Text>
-              </View>
-              <View className={styles.invoiceInfoItem}>
-                <Text className={styles.invoiceInfoLabel}>接收邮箱</Text>
-                <Text>{invoice.email}</Text>
-              </View>
-              <View className={styles.invoiceInfoItem}>
-                <Text className={styles.invoiceInfoLabel}>关联订单</Text>
-                <Text>{invoice.orderIds ? invoice.orderIds.length : 1}个</Text>
-              </View>
-              <View className={styles.invoiceInfoItem}>
-                <Text className={styles.invoiceInfoLabel}>申请时间</Text>
-                <Text>{invoice.createTime}</Text>
-              </View>
-            </View>
-            <View className={styles.invoiceActions}>
-              <View
-                className={classnames(styles.actionBtn, styles.actionBtnSecondary)}
-                onClick={() => handleViewDetail(invoice)}
-              >
-                <Text>查看详情</Text>
-              </View>
-              {invoice.status === 'issued' && (
-                <View
-                  className={classnames(styles.actionBtn, styles.actionBtnPrimary)}
-                  onClick={() => handleResendEmail(invoice)}
-                >
-                  <Text>重发邮件</Text>
+                <View className={styles.invoiceInfoItem}>
+                  <Text className={styles.invoiceInfoLabel}>申请时间</Text>
+                  <Text>{invoice.createTime}</Text>
                 </View>
-              )}
-              {invoice.status === 'pending' && (
-                <View
-                  className={classnames(styles.actionBtn, styles.actionBtnPrimary)}
-                  onClick={() => handleSimulateIssued(invoice.id)}
-                >
-                  <Text>模拟开票</Text>
-                </View>
-              )}
+              </View>
+              <View className={styles.invoiceActions}>
+                {invoice.status === 'issued' && (
+                  <>
+                    <View
+                      className={classnames(styles.actionBtn, styles.actionBtnSecondary)}
+                      onClick={() => handleResendEmail(invoice)}
+                    >
+                      <Text>重发邮件</Text>
+                    </View>
+                    <View
+                      className={classnames(styles.actionBtn, styles.actionBtnPrimary)}
+                      onClick={() => handleOpenChangeEmail(invoice)}
+                    >
+                      <Text>修改邮箱</Text>
+                    </View>
+                  </>
+                )}
+                {invoice.status === 'pending' && (
+                  <View
+                    className={classnames(styles.actionBtn, styles.actionBtnPrimary)}
+                    onClick={() => handleSimulateIssued(invoice.id)}
+                  >
+                    <Text>模拟开票</Text>
+                  </View>
+                )}
+              </View>
             </View>
-          </View>
-        )) : (
+          );
+        }) : (
           <View className={styles.emptyState}>
             <Text className={styles.emptyIcon}>🧾</Text>
             <Text className={styles.emptyText}>暂无开票记录</Text>
@@ -380,6 +403,38 @@ ${orderInfo}
       </View>
     </ScrollView>
   );
+
+  const renderEditEmailPopup = () => {
+    if (!editEmailInvoice) return null;
+    return (
+      <View className={styles.emailPopup} onClick={() => setEditEmailInvoice(null)}>
+        <View className={styles.emailContent} onClick={(e) => e.stopPropagation()}>
+          <Text className={styles.emailPopupTitle}>修改接收邮箱</Text>
+          <Text className={styles.emailPopupDesc}>当前邮箱：{editEmailInvoice.email}</Text>
+          <Input
+            className={styles.emailInput}
+            placeholder="请输入新邮箱地址"
+            value={newEmail}
+            onInput={(e) => setNewEmail(e.detail.value)}
+          />
+          <View className={styles.emailPopupActions}>
+            <View
+              className={classnames(styles.emailPopupBtn, styles.emailPopupCancel)}
+              onClick={() => setEditEmailInvoice(null)}
+            >
+              <Text>取消</Text>
+            </View>
+            <View
+              className={classnames(styles.emailPopupBtn, styles.emailPopupConfirm)}
+              onClick={handleSaveNewEmail}
+            >
+              <Text>保存</Text>
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  };
 
   return (
     <View className={styles.invoicePage}>
@@ -399,6 +454,8 @@ ${orderInfo}
         {activeTab === 0 && renderApplyForm()}
         {activeTab === 1 && renderInvoiceList()}
       </View>
+
+      {renderEditEmailPopup()}
     </View>
   );
 };

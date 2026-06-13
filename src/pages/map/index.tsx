@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { View, Text } from '@tarojs/components';
 import Taro, { useDidShow } from '@tarojs/taro';
 import classnames from 'classnames';
@@ -6,8 +6,8 @@ import { useAppStore } from '@/store/app-store';
 import { spotsData } from '@/data/spots';
 import { facilities } from '@/data/service';
 import { routeTypes, routeSpotsMap } from '@/data/itinerary';
-import { getQueueLevelText, getQueueLevelColor, formatTime } from '@/utils';
-import { Spot } from '@/types';
+import { getQueueLevelText, getQueueLevelColor } from '@/utils';
+import { Spot, TourSpotRecord } from '@/types';
 import styles from './index.module.scss';
 
 const formatDuration = (ms: number): string => {
@@ -29,8 +29,17 @@ const MapPage: React.FC = () => {
   const activeRouteTour = useAppStore(state => state.activeRouteTour);
   const setActiveRouteTour = useAppStore(state => state.setActiveRouteTour);
   const advanceRouteTour = useAppStore(state => state.advanceRouteTour);
+  const addTourHistory = useAppStore(state => state.addTourHistory);
+  const addMessage = useAppStore(state => state.addMessage);
 
   const isTourActive = !!activeRouteTour;
+  const prevSpotIndexRef = useRef<number>(-1);
+
+  useEffect(() => {
+    if (activeRouteTour) {
+      prevSpotIndexRef.current = activeRouteTour.currentSpotIndex;
+    }
+  }, [activeRouteTour?.currentSpotIndex]);
 
   useEffect(() => {
     if (activeRouteTour && activeRouteTour.routeId !== activeRoute) {
@@ -114,13 +123,34 @@ const MapPage: React.FC = () => {
   }, [activeRouteTour]);
 
   const handleRouteChange = (routeId: string) => {
-    if (isTourActive) {
+    if (isTourActive && activeRouteTour) {
       Taro.showModal({
         title: '切换路线',
-        content: '当前正在游览中，切换路线将结束当前游览，确认吗？',
+        content: '当前正在游览中，切换路线将结束当前游览并保存记录，确认吗？',
         confirmColor: '#2563eb',
         success: (res) => {
           if (res.confirm) {
+            const nowIso = new Date().toISOString();
+            const startTime = new Date(activeRouteTour.startTime).getTime();
+            const totalMs = Date.now() - startTime;
+            const finalSpots = activeRouteTour.spots.map((s, i) => {
+              if (i === activeRouteTour.currentSpotIndex && !s.leaveTime) {
+                return { ...s, leaveTime: nowIso, dwellMs: Date.now() - new Date(s.arriveTime).getTime() };
+              }
+              return s;
+            });
+            const tourRoute = routeSpotsMap.find(r => r.routeId === activeRouteTour.routeId);
+            addTourHistory({
+              id: 'tour-' + Date.now(),
+              routeId: activeRouteTour.routeId,
+              routeName: tourRoute?.name || '未知路线',
+              startTime: activeRouteTour.startTime,
+              endTime: nowIso,
+              totalMs,
+              spots: finalSpots,
+              completedCount: finalSpots.filter(s => s.leaveTime).length,
+              totalCount: tourRoute?.spotIds.length || 0
+            });
             setActiveRouteTour(null);
             setActiveRoute(routeId);
             setSelectedSpot(null);
@@ -164,17 +194,25 @@ const MapPage: React.FC = () => {
   const handleStartTour = () => {
     Taro.showModal({
       title: '开始游览',
-      content: `即将开始「${currentRoute.name}」路线游览，共${routeSpots.length}个景点，系统会记录您的游览进度。`,
+      content: `即将开始「${currentRoute.name}」路线游览，共${routeSpots.length}个景点，系统会记录您的游览进度和每个景点的停留时间。`,
       confirmText: '开始',
       confirmColor: '#2563eb',
       success: (res) => {
         if (res.confirm) {
+          const firstSpot = routeSpots[0];
+          const nowIso = new Date().toISOString();
+          const initialSpots: TourSpotRecord[] = firstSpot ? [{
+            spotId: firstSpot.id,
+            spotName: firstSpot.name,
+            arriveTime: nowIso
+          }] : [];
           setActiveRouteTour({
             routeId: activeRoute,
             currentSpotIndex: 0,
-            startTime: formatTime(new Date())
+            startTime: nowIso,
+            spots: initialSpots
           });
-          setSelectedSpot(routeSpots[0] || null);
+          setSelectedSpot(firstSpot || null);
           Taro.showToast({ title: '游览开始！', icon: 'success' });
         }
       }
@@ -189,9 +227,31 @@ const MapPage: React.FC = () => {
       Taro.showToast({ title: '已是最后一个景点', icon: 'none' });
       return;
     }
+    const nowIso = new Date().toISOString();
+    const updatedSpots = [...activeRouteTour.spots];
+    const currentRecord = updatedSpots[activeRouteTour.currentSpotIndex];
+    if (currentRecord && !currentRecord.leaveTime) {
+      const arriveTime = new Date(currentRecord.arriveTime).getTime();
+      currentRecord.leaveTime = nowIso;
+      currentRecord.dwellMs = Date.now() - arriveTime;
+    }
     advanceRouteTour();
     const nextIndex = activeRouteTour.currentSpotIndex + 1;
     const nextSpot = routeSpots[nextIndex];
+    if (nextSpot && nextIndex < updatedSpots.length) {
+      updatedSpots[nextIndex] = { ...updatedSpots[nextIndex], arriveTime: nowIso };
+    } else if (nextSpot) {
+      updatedSpots.push({
+        spotId: nextSpot.id,
+        spotName: nextSpot.name,
+        arriveTime: nowIso
+      });
+    }
+    setActiveRouteTour({
+      ...activeRouteTour,
+      currentSpotIndex: nextIndex,
+      spots: updatedSpots
+    });
     if (nextSpot) setSelectedSpot(nextSpot);
     Taro.showToast({ title: `前往第${nextIndex + 1}个景点`, icon: 'none' });
   };
@@ -199,10 +259,43 @@ const MapPage: React.FC = () => {
   const handleFinishTour = () => {
     Taro.showModal({
       title: '结束游览',
-      content: '确定要结束当前路线游览吗？',
+      content: '确定要结束当前路线游览吗？游览记录将保存到个人中心。',
       confirmColor: '#f53f3f',
       success: (res) => {
-        if (res.confirm) {
+        if (res.confirm && activeRouteTour) {
+          const nowIso = new Date().toISOString();
+          const startTime = new Date(activeRouteTour.startTime).getTime();
+          const totalMs = Date.now() - startTime;
+          const finalSpots = activeRouteTour.spots.map((s, i) => {
+            if (i === activeRouteTour.currentSpotIndex && !s.leaveTime) {
+              return { ...s, leaveTime: nowIso, dwellMs: Date.now() - new Date(s.arriveTime).getTime() };
+            }
+            return s;
+          });
+          const tourRoute = routeSpotsMap.find(r => r.routeId === activeRouteTour.routeId);
+          const completedCount = finalSpots.filter(s => s.leaveTime).length;
+          const totalCount = tourRoute?.spotIds.length || 0;
+
+          addTourHistory({
+            id: 'tour-' + Date.now(),
+            routeId: activeRouteTour.routeId,
+            routeName: tourRoute?.name || '未知路线',
+            startTime: activeRouteTour.startTime,
+            endTime: nowIso,
+            totalMs,
+            spots: finalSpots,
+            completedCount,
+            totalCount
+          });
+
+          addMessage({
+            type: 'tour',
+            title: '游览完成',
+            desc: `「${tourRoute?.name || '路线'}」游览结束，共${completedCount}个景点，耗时${formatDuration(totalMs)}`,
+            targetId: 'tour-' + Date.now(),
+            targetPath: '/pages/mine/index'
+          });
+
           setActiveRouteTour(null);
           Taro.showToast({ title: '游览已结束', icon: 'success' });
         }

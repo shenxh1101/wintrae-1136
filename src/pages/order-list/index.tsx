@@ -51,6 +51,7 @@ const OrderListPage: React.FC = () => {
   const createRefund = useAppStore(state => state.createRefund);
   const updateRefund = useAppStore(state => state.updateRefund);
   const updateTicketOrder = useAppStore(state => state.updateTicketOrder);
+  const addMessage = useAppStore(state => state.addMessage);
 
   useEffect(() => {
     const status = router.params.status as string;
@@ -157,29 +158,44 @@ const OrderListPage: React.FC = () => {
       amount: detailOrder.totalPrice
     });
     setShowRefundPopup(false);
-    setDetailOrder(null);
     Taro.showToast({ title: '退款申请已提交', icon: 'success' });
+
+    const refundId = 'refund-' + Date.now();
+
     setTimeout(() => {
-      const order = ticketOrders.find(o => o.refundId);
-      if (order && order.refundId) {
-        updateRefund(order.refundId, {
-          status: 'processing',
-          processTime: new Date().toISOString(),
-          remark: '财务审核中...'
-        });
-      }
+      updateRefund(refundId, {
+        status: 'processing',
+        processTime: new Date().toISOString(),
+        remark: '财务审核中...'
+      });
+      addMessage({
+        type: 'refund',
+        title: '退款审核中',
+        desc: `订单${detailOrder.orderNo || detailOrder.id}退款¥${detailOrder.totalPrice}正在审核`,
+        targetId: refundId,
+        targetPath: '/pages/order-list/index?status=refund'
+      });
     }, 2000);
+
     setTimeout(() => {
-      const order = ticketOrders.find(o => o.refundId);
-      if (order && order.refundId) {
-        updateRefund(order.refundId, {
-          status: 'completed',
-          processTime: new Date().toISOString(),
-          remark: '退款已原路退回'
-        });
-        updateTicketOrder(order.id, { invoiceStatus: 'none' });
-      }
-    }, 5000);
+      const methodText = refundMethod === 'original' ? '原路退回' : '退回余额';
+      updateRefund(refundId, {
+        status: 'completed',
+        processTime: new Date().toISOString(),
+        remark: `退款已${methodText}`
+      });
+      updateTicketOrder(detailOrder.id, { invoiceStatus: 'none' });
+      addMessage({
+        type: 'refund',
+        title: '退款已到账',
+        desc: `订单${detailOrder.orderNo || detailOrder.id}¥${detailOrder.totalPrice}已${methodText}`,
+        targetId: refundId,
+        targetPath: '/pages/order-list/index?status=refund'
+      });
+    }, 6000);
+
+    setDetailOrder(null);
+    setActiveTab('refund');
   };
 
   const handleSimulateProcess = (refundId: string) => {
@@ -188,14 +204,30 @@ const OrderListPage: React.FC = () => {
       processTime: new Date().toISOString(),
       remark: '财务审核中...'
     });
+    addMessage({
+      type: 'refund',
+      title: '退款审核中',
+      desc: '您的退款申请正在审核中',
+      targetId: refundId,
+      targetPath: '/pages/order-list/index?status=refund'
+    });
     setTimeout(() => {
+      const refund = refundList.find(r => r.id === refundId);
+      const methodText = refund?.method === 'original' ? '原路退回' : '退回余额';
       updateRefund(refundId, {
         status: 'completed',
         processTime: new Date().toISOString(),
-        remark: '退款已原路退回'
+        remark: `退款已${methodText}`
       });
       const order = ticketOrders.find(o => o.refundId === refundId);
       if (order) updateTicketOrder(order.id, { invoiceStatus: 'none' });
+      addMessage({
+        type: 'refund',
+        title: '退款已到账',
+        desc: `退款¥${refund?.amount || 0}已${methodText}`,
+        targetId: refundId,
+        targetPath: '/pages/order-list/index?status=refund'
+      });
     }, 3000);
   };
 
